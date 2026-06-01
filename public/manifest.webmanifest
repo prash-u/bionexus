@@ -1,0 +1,17 @@
+{
+  "name": "BioNexus",
+  "short_name": "BioNexus",
+  "description": "A privacy-first biological reasoning workspace.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#040814",
+  "theme_color": "#07111f",
+  "icons": [
+    {
+      "src": "/icons/bionexus-icon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
