@@ -43,7 +43,7 @@ const placeholder = { provenance: "curated_approximation", ratioBasis: "curated_
 export const molecularEdges: MolecularEdge[] = [
   {
     id: "edge-gut-liver-glucose",
-    scenarioIds: ["metabolic-dysfunction", "inflammatory-activation"],
+    scenarioIds: ["healthy-baseline", "custom-state", "metabolic-dysfunction", "inflammatory-activation"],
     sourceRegionId: "intestine",
     targetRegionId: "liver",
     label: "Enterohepatic glucose and nutrient delivery",
@@ -123,7 +123,7 @@ export const molecularEdges: MolecularEdge[] = [
   },
   {
     id: "edge-lungs-heart-gas",
-    scenarioIds: ["metabolic-dysfunction", "inflammatory-activation"],
+    scenarioIds: ["healthy-baseline", "custom-state", "metabolic-dysfunction", "inflammatory-activation"],
     sourceRegionId: "lungs",
     targetRegionId: "heart",
     label: "Pulmonary gas exchange supporting cardiac oxygen delivery",
@@ -243,7 +243,7 @@ export const molecularEdges: MolecularEdge[] = [
   },
   {
     id: "edge-immune-liver-cytokine",
-    scenarioIds: ["inflammatory-activation", "metabolic-dysfunction"],
+    scenarioIds: ["custom-state", "inflammatory-activation", "metabolic-dysfunction"],
     sourceRegionId: "immune",
     targetRegionId: "liver",
     label: "Cytokine signalling to hepatic acute-phase context",

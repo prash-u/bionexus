@@ -26,7 +26,7 @@ export function HomePage() {
               Build a scenario
               <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link className="nexus-button-secondary" to="/body-atlas">
+            <Link className="nexus-button-secondary" to="/body-sandbox">
               Explore the body
             </Link>
           </div>
@@ -70,8 +70,8 @@ export function HomePage() {
       </GlassCard>
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <ModuleCard to="/body-sandbox" title="Build a scenario" icon={ScanHeart} description="Choose a preset, baseline, predispositions, perturbations and interventions." />
-        <ModuleCard to="/body-atlas" title="Explore the body" icon={UserRoundSearch} description="Inspect affected organs and systems through a clickable whole-body consequence map." />
-        <ModuleCard to="/knowledge-graph" title="Trace pathways" icon={Network} description="Review active pathways, linked systems, confidence and evidence-aware interpretation." />
+        <ModuleCard to="/body-sandbox" title="Explore the body" icon={UserRoundSearch} description="Inspect affected organs and systems through the Body pillar." />
+        <ModuleCard to="/body-sandbox" title="Trace pathways" icon={Network} description="Use Knowledge Path to trace upstream and downstream reasoning." />
         <ModuleCard to="/reports" title="Generate a report" icon={FileText} description="Export learner, educator, research, investor or scenario reports from SandboxState." />
       </section>
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

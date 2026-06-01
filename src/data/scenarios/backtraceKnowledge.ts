@@ -13,6 +13,36 @@ const assumptions = [
 
 export const backtraceSeeds: CandidateSeed[] = [
   {
+    id: "bt-gapdh-reference-metabolism",
+    scenarioIds: ["healthy-baseline"],
+    geneSymbol: "GAPDH",
+    geneName: "Glyceraldehyde-3-phosphate dehydrogenase",
+    direction: "unknown",
+    linkedPathways: ["Energy metabolism", "Homeostatic signalling"],
+    linkedBodyRegions: ["liver", "muscle", "heart"],
+    linkedPhenotypes: ["Reference state"],
+    baseScore: 0.42,
+    confidence: 0.48,
+    evidenceIds: ["curated-reference-baseline"],
+    reasoning: "Healthy Baseline uses reference metabolism as a comparison layer before the user adds perturbations.",
+    assumptions
+  },
+  {
+    id: "bt-nfkb1-custom-sentinel",
+    scenarioIds: ["custom-state"],
+    geneSymbol: "NFKB1",
+    geneName: "NF-kappa-B p105",
+    direction: "unknown",
+    linkedPathways: ["User-selected pathway", "Inflammation", "Neural synchrony"],
+    linkedBodyRegions: ["immune", "liver", "brain"],
+    linkedPhenotypes: ["User-defined phenotype"],
+    baseScore: 0.5,
+    confidence: 0.42,
+    evidenceIds: ["custom-sandbox-assumption"],
+    reasoning: "Custom state begins with broad signalling candidates until the user provides more specific evidence or imports.",
+    assumptions
+  },
+  {
     id: "bt-snca-proteostasis",
     scenarioIds: ["parkinsonism-motor-circuit"],
     geneSymbol: "SNCA",

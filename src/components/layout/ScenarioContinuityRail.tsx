@@ -16,16 +16,16 @@ export function ScenarioContinuityRail() {
           {activePreset.shortTitle}
         </Link>
         <ArrowRight className="h-3.5 w-3.5 text-slate-600" />
-        <Link to="/body-atlas" className="inline-flex items-center gap-2 rounded-full border border-slate-600/35 bg-slate-950/50 px-3 py-1 text-slate-200 transition hover:border-cyan-300/40">
+        <Link to="/body-sandbox" className="inline-flex items-center gap-2 rounded-full border border-slate-600/35 bg-slate-950/50 px-3 py-1 text-slate-200 transition hover:border-cyan-300/40">
           Region: {bodyRegionLabels[sandbox.selectedRegionId]}
         </Link>
         <ArrowRight className="hidden h-3.5 w-3.5 text-slate-600 sm:block" />
-        <Link to="/knowledge-graph" className="inline-flex items-center gap-2 rounded-full border border-slate-600/35 bg-slate-950/50 px-3 py-1 text-slate-200 transition hover:border-violet-300/40">
+        <Link to="/body-sandbox" className="inline-flex items-center gap-2 rounded-full border border-slate-600/35 bg-slate-950/50 px-3 py-1 text-slate-200 transition hover:border-violet-300/40">
           <Share2 className="h-3.5 w-3.5 text-violet-200" />
           {topCandidate ? `${topCandidate.geneSymbol} backtrace` : "Graph ready"}
         </Link>
         <Link
-          to="/neural-circuit"
+          to="/body-sandbox"
           className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 transition ${
             neuralSent
               ? "border-emerald-300/30 bg-emerald-300/10 text-emerald-100 hover:border-emerald-200/50"

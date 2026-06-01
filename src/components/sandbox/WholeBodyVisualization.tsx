@@ -1,11 +1,22 @@
 import { Maximize2, Minus, Plus, RotateCcw } from "lucide-react";
-import { useId, useMemo, useState, type PointerEvent, type ReactNode, type WheelEvent } from "react";
+import { useEffect, useId, useMemo, useState, type PointerEvent, type ReactNode, type WheelEvent } from "react";
 import { bodyRegionLabels } from "@/data/scenarios/presets";
 import type { BodyRegionId, MolecularEdge, OrganEffect } from "@/lib/ontology/types";
 import { molecularProvenanceLabel } from "@/lib/molecular/importAdapters";
 import { useSandbox } from "@/lib/sandbox/sandboxState";
 
 type AtlasView = { zoom: number; panX: number; panY: number };
+export type BodySystemFilterId =
+  | "nervous"
+  | "musculoskeletal"
+  | "cardiovascular"
+  | "respiratory"
+  | "digestive"
+  | "endocrine"
+  | "immune"
+  | "renal"
+  | "ocular";
+export type BodyZoomLevel = "wholeBody" | "system" | "region" | "molecular";
 type RegionNode = {
   nodeId: string;
   regionId: BodyRegionId;
@@ -25,6 +36,23 @@ type RegionNode = {
 
 const viewBox = { x: 0, y: 0, width: 106.00675, height: 195.36273 };
 const defaultView: AtlasView = { zoom: 1.04, panX: 0, panY: 0 };
+const zoomView: Record<BodyZoomLevel, AtlasView> = {
+  wholeBody: defaultView,
+  system: { zoom: 1.35, panX: 0, panY: -8 },
+  region: { zoom: 1.85, panX: 0, panY: -18 },
+  molecular: { zoom: 2.25, panX: 0, panY: -22 }
+};
+const systemRegions: Record<BodySystemFilterId, BodyRegionId[]> = {
+  nervous: ["brain", "peripheralNerves"],
+  musculoskeletal: ["muscle", "boneMarrow"],
+  cardiovascular: ["heart"],
+  respiratory: ["lungs"],
+  digestive: ["stomach", "intestine", "gut", "liver"],
+  endocrine: ["thyroid", "pancreas", "adipose"],
+  immune: ["immune", "spleen", "boneMarrow", "skin"],
+  renal: ["kidney"],
+  ocular: ["eye"]
+};
 
 const node = (
   nodeId: string,
@@ -95,7 +123,15 @@ const colorFor = (effect?: OrganEffect) => {
   return "hsl(188 100% 74%)";
 };
 
-export function WholeBodyVisualization({ compact = false }: { compact?: boolean }) {
+export function WholeBodyVisualization({
+  compact = false,
+  activeSystems,
+  zoomLevel = "wholeBody"
+}: {
+  compact?: boolean;
+  activeSystems?: BodySystemFilterId[];
+  zoomLevel?: BodyZoomLevel;
+}) {
   const uid = useId().replace(/:/g, "");
   const { activePreset, sandbox, selectRegion, selectMolecularEdge } = useSandbox();
   const [view, setView] = useState<AtlasView>(defaultView);
@@ -107,7 +143,12 @@ export function WholeBodyVisualization({ compact = false }: { compact?: boolean 
   const selectedRegion = regionNodes.find((region) => region.regionId === (hovered ?? sandbox.selectedRegionId));
   const selectedEffect = selectedRegion ? effectForNode(selectedRegion, effectMap) : undefined;
   const selectedEdge = sandbox.simulationResult.molecularEdges.find((edge) => edge.id === sandbox.selectedMolecularEdgeId) ?? sandbox.simulationResult.molecularEdges[0];
+  const visibleRegions = useMemo(() => new Set((activeSystems ?? Object.keys(systemRegions) as BodySystemFilterId[]).flatMap((system) => systemRegions[system])), [activeSystems]);
   const transform = `translate(${viewBox.width / 2 + view.panX} ${viewBox.height / 2 + view.panY}) scale(${view.zoom}) translate(${-viewBox.width / 2} ${-viewBox.height / 2})`;
+
+  useEffect(() => {
+    setView(zoomView[zoomLevel]);
+  }, [zoomLevel]);
 
   const zoomBy = (delta: number) => setView((current) => ({ ...current, zoom: clamp(round(current.zoom + delta), 0.86, 2.7) }));
   const focusSelected = () => selectedRegion && setView({ zoom: 2.05, panX: clamp((viewBox.width / 2 - selectedRegion.cx) * 1.2, -34, 34), panY: clamp((viewBox.height / 2 - selectedRegion.cy) * 1.2, -52, 52) });
@@ -173,7 +214,7 @@ export function WholeBodyVisualization({ compact = false }: { compact?: boolean 
               <NeurovascularOverlay uid={uid} />
               <MuscleFiberOverlay />
             </g>
-            {showFlows ? <MolecularEdges edges={sandbox.simulationResult.molecularEdges} selectedEdgeId={selectedEdge?.id} onSelect={selectMolecularEdge} uid={uid} /> : null}
+            {showFlows ? <MolecularEdges edges={sandbox.simulationResult.molecularEdges} selectedEdgeId={selectedEdge?.id} onSelect={selectMolecularEdge} uid={uid} visibleRegions={visibleRegions} /> : null}
             <g>
               {regionNodes.map((region) => (
                 <AnatomyHotspot
@@ -183,6 +224,7 @@ export function WholeBodyVisualization({ compact = false }: { compact?: boolean 
                   effect={effectForNode(region, effectMap)}
                   selected={sandbox.selectedRegionId === region.regionId}
                   hovered={hovered === region.regionId}
+                  dimmed={!visibleRegions.has(region.regionId)}
                   showLabel={showLabels}
                   onHover={setHovered}
                   onSelect={selectRegion}
@@ -225,7 +267,19 @@ function VisibleAnatomyFallback() {
   );
 }
 
-function MolecularEdges({ edges, selectedEdgeId, onSelect, uid }: { edges: MolecularEdge[]; selectedEdgeId?: string; onSelect: (id: string) => void; uid: string }) {
+function MolecularEdges({
+  edges,
+  selectedEdgeId,
+  onSelect,
+  uid,
+  visibleRegions
+}: {
+  edges: MolecularEdge[];
+  selectedEdgeId?: string;
+  onSelect: (id: string) => void;
+  uid: string;
+  visibleRegions: Set<BodyRegionId>;
+}) {
   return (
     <g>
       {edges.map((edge) => {
@@ -233,10 +287,11 @@ function MolecularEdges({ edges, selectedEdgeId, onSelect, uid }: { edges: Molec
         const target = nodeForRegion(edge.targetRegionId);
         if (!source || !target) return null;
         const active = selectedEdgeId === edge.id;
+        const dimmed = !visibleRegions.has(edge.sourceRegionId) && !visibleRegions.has(edge.targetRegionId);
         const color = edgeColor(edge.edgeKind);
         const path = curvedPath(source, target, edge.scenarioModifier * 18 || 8);
         return (
-          <g key={edge.id} data-edge="true" role="button" tabIndex={0} style={{ cursor: "pointer" }} onClick={() => onSelect(edge.id)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onSelect(edge.id); }} opacity={active ? 0.96 : 0.55}>
+          <g key={edge.id} data-edge="true" role="button" tabIndex={0} style={{ cursor: "pointer" }} onClick={() => onSelect(edge.id)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onSelect(edge.id); }} opacity={dimmed ? 0.12 : active ? 0.96 : 0.55}>
             <path d={path} fill="none" stroke={color} strokeWidth={active ? 0.8 : 0.42} strokeDasharray={edge.edgeKind === "transport" ? "1.8 2.2" : edge.edgeKind === "immune" ? "0.8 1.4" : undefined} strokeLinecap="round" vectorEffect="non-scaling-stroke" filter={`url(#${uid}-blurGlow)`} />
             <circle r={active ? 0.95 : 0.56} fill={color}><animateMotion dur={`${clamp(7 - edge.baseFlux * 4, 2.8, 7)}s`} repeatCount="indefinite" path={path} /></circle>
           </g>
@@ -322,14 +377,14 @@ function MuscleFiberOverlay() {
   );
 }
 
-function AnatomyHotspot({ uid, region, effect, selected, hovered, showLabel, onHover, onSelect }: { uid: string; region: RegionNode; effect?: OrganEffect; selected: boolean; hovered: boolean; showLabel: boolean; onHover: (id: BodyRegionId | null) => void; onSelect: (id: BodyRegionId) => void }) {
+function AnatomyHotspot({ uid, region, effect, selected, hovered, dimmed, showLabel, onHover, onSelect }: { uid: string; region: RegionNode; effect?: OrganEffect; selected: boolean; hovered: boolean; dimmed: boolean; showLabel: boolean; onHover: (id: BodyRegionId | null) => void; onSelect: (id: BodyRegionId) => void }) {
   const active = Boolean(effect && effect.magnitude > 22);
   const color = colorFor(effect);
   const intensity = Math.max(0.12, (effect?.magnitude ?? 12) / 100);
   const radius = region.r + (selected ? 0.55 : hovered ? 0.32 : 0);
   const showText = showLabel || selected || hovered;
   return (
-    <g data-hotspot="true" role="button" tabIndex={0} style={{ cursor: "pointer" }} onMouseEnter={() => onHover(region.regionId)} onMouseLeave={() => onHover(null)} onClick={() => onSelect(region.regionId)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onSelect(region.regionId); }} aria-label={`Select ${bodyRegionLabels[region.regionId]}`}>
+    <g data-hotspot="true" role="button" tabIndex={0} style={{ cursor: "pointer", opacity: dimmed && !selected && !hovered ? 0.24 : 1 }} onMouseEnter={() => onHover(region.regionId)} onMouseLeave={() => onHover(null)} onClick={() => onSelect(region.regionId)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onSelect(region.regionId); }} aria-label={`Select ${bodyRegionLabels[region.regionId]}`}>
       <ellipse cx={region.cx} cy={region.cy} rx={region.haloX} ry={region.haloY} fill={color} opacity={active ? 0.1 + intensity * 0.2 : selected || hovered ? 0.08 : 0.02} filter={`url(#${uid}-hotspotGlow)`} className={active ? "animate-pulse-soft" : undefined} />
       <circle cx={region.cx} cy={region.cy} r={region.hitR} fill="transparent" />
       <circle cx={region.cx} cy={region.cy} r={radius} fill="rgba(8,20,36,0.8)" stroke={color} strokeWidth={selected ? 0.58 : hovered || active ? 0.36 : 0.22} strokeOpacity={selected || hovered || active ? 0.95 : 0.48} vectorEffect="non-scaling-stroke" />

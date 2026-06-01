@@ -58,7 +58,7 @@ const evidencePatterns: Array<{
   }
 ];
 
-export function ScenarioBuilderPanel() {
+export function ScenarioBuilderPanel({ showInterventions = false }: { showInterventions?: boolean }) {
   const { sandbox, activePreset, selectPreset, togglePredisposition, togglePerturbation, toggleIntervention, setPathwayTuning, applySandboxTuning } = useSandbox();
   const activePredispositions = new Set(sandbox.scenario.predispositions.map((item) => item.id));
   const activePerturbations = new Set(sandbox.scenario.perturbations.map((item) => item.id));
@@ -179,7 +179,9 @@ export function ScenarioBuilderPanel() {
         </div>
         <ToggleList title="Predispositions" items={activePreset.predispositions} active={activePredispositions} onToggle={togglePredisposition} />
         <ToggleList title="Perturbations" items={activePreset.perturbations} active={activePerturbations} onToggle={togglePerturbation} />
-        <ToggleList title="Interventions" items={activePreset.interventions} active={activeInterventions} onToggle={toggleIntervention} />
+        {showInterventions ? (
+          <ToggleList title="Interventions" items={activePreset.interventions} active={activeInterventions} onToggle={toggleIntervention} />
+        ) : null}
         <div>
           <p className="mb-2 text-xs uppercase tracking-[0.18em] text-slate-500">Pathway tuning</p>
           <div className="space-y-2">

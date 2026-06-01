@@ -36,7 +36,7 @@ const scenarioFromPreset = (preset: ScenarioPreset): Scenario => ({
   baselineProfile: preset.baselineProfile,
   predispositions: preset.predispositions,
   perturbations: preset.perturbations,
-  interventions: preset.interventions.slice(0, 1),
+  interventions: [],
   activeLayers: biologicalLayers,
   notes: "Editable scenario generated from preset."
 });
@@ -45,7 +45,7 @@ const moduleOutputs = (preset: ScenarioPreset): ModuleOutput[] => [
   { moduleId: "body-sandbox", title: "Body sandbox state", summary: `${preset.shortTitle} active across ${preset.affectedSystems.join(", ")}.`, includedInReport: true },
   { moduleId: "body-atlas", title: "Whole-body atlas", summary: "Detailed organ, tissue and molecular edge map contributes selected body-state context.", includedInReport: true },
   { moduleId: "knowledge-graph", title: "Pathway context", summary: `Active pathways: ${preset.keyPathways.join(", ")}.`, includedInReport: true },
-  { moduleId: "interventions", title: "Perturbation library", summary: "Selected interventions are treated as exploratory modulators of scenario biology.", includedInReport: true },
+  { moduleId: "interventions", title: "Perturbation library", summary: "Interventions are hidden until the user asks a what-if question.", includedInReport: false },
   { moduleId: "neural-circuit", title: "Neural module", summary: preset.category === "neural" ? "Motor circuit module contributes DBS/modulation context." : "Neural module available as optional context.", includedInReport: preset.category === "neural" }
 ];
 

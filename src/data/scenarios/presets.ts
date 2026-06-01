@@ -45,6 +45,67 @@ export const bodyRegionLabels: Record<BodyRegionId, string> = {
 
 export const scenarioPresets: ScenarioPreset[] = [
   {
+    id: "healthy-baseline",
+    title: "Healthy Baseline",
+    shortTitle: "Healthy Baseline",
+    category: "custom",
+    description: "A low-pressure reference state for building a custom biological model before adding predispositions, perturbations or what-if interventions.",
+    affectedSystems: ["Whole-body homeostasis", "System stability"],
+    affectedRegions: ["brain", "heart", "lungs", "liver", "kidney", "muscle", "immune"],
+    keyGenes: ["GAPDH", "ACTB", "INSR", "NFKB1"],
+    keyPathways: ["Homeostatic signalling", "Energy metabolism", "Oxygen transport", "Immune surveillance"],
+    baselineProfile: { id: "baseline-healthy", label: "Healthy reference", description: "Low-pressure baseline for exploratory state building.", assumptions },
+    predispositions: [],
+    perturbations: [],
+    interventions: [],
+    reasoningTrail: { id: "trail-healthy", steps: ["Baseline: no disease-centered preset selected", "Observe: body systems remain near reference pressure", "Understand: homeostatic pathways provide comparison context", "Perturb: add custom changes only when testing a what-if"] },
+    organEffects: [
+      { organ: "heart", label: "Reference cardiac support", direction: "baseline", magnitude: 20, ...trace("scenario-healthy", "Healthy baseline") },
+      { organ: "lungs", label: "Reference oxygen exchange", direction: "baseline", magnitude: 18, ...trace("scenario-healthy", "Healthy baseline") },
+      { organ: "liver", label: "Reference metabolic buffering", direction: "baseline", magnitude: 22, ...trace("scenario-healthy", "Healthy baseline") },
+      { organ: "immune", label: "Reference immune surveillance", direction: "baseline", magnitude: 18, ...trace("scenario-healthy", "Healthy baseline") }
+    ],
+    systemEffects: [
+      { system: "Whole-body homeostasis", label: "Stable reference state", status: "stable", magnitude: 18, ...trace("scenario-healthy", "Healthy baseline") }
+    ],
+    phenotypeEffects: [
+      { phenotype: "Reference state", label: "No dominant phenotype pressure", direction: "baseline", magnitude: 16, ...trace("scenario-healthy", "Healthy baseline") }
+    ],
+    limitations: ["Reference educational state only", "Not a claim of individual health"]
+  },
+  {
+    id: "custom-state",
+    title: "Custom biological state",
+    shortTitle: "Custom",
+    category: "custom",
+    description: "A blank-but-functional sandbox state for modelling the user's example from whichever layer they have data for.",
+    affectedSystems: ["User-defined system", "Body-scale consequence map"],
+    affectedRegions: ["brain", "liver", "immune", "muscle", "heart", "eye"],
+    keyGenes: ["NFKB1", "INSR", "PINK1", "RPE65"],
+    keyPathways: ["User-selected pathway", "Inflammation", "Metabolic regulation", "Neural synchrony"],
+    baselineProfile: { id: "baseline-custom", label: "Custom reference", description: "Start from observed evidence and tune the body state.", assumptions },
+    predispositions: [
+      { id: "pred-custom", label: "User-provided predisposition", targetLayer: "systems", description: "Placeholder for the user's selected upstream assumption.", confidence: 0.42 }
+    ],
+    perturbations: [
+      { id: "pert-custom", label: "User-provided perturbation", targetLayer: "pathways", direction: "modulate", description: "Placeholder for the biological change being tested.", magnitude: 42 }
+    ],
+    interventions: [],
+    reasoningTrail: { id: "trail-custom", steps: ["Configure: choose what layer the user has data for", "Observe: tune body attributes and affected systems", "Understand: trace upstream and downstream mechanisms", "Perturb: open intervention only for explicit what-if testing"] },
+    organEffects: [
+      { organ: "brain", label: "Custom neural context", direction: "baseline", magnitude: 26, ...trace("scenario-custom", "Custom biological state") },
+      { organ: "liver", label: "Custom metabolic context", direction: "baseline", magnitude: 26, ...trace("scenario-custom", "Custom biological state") },
+      { organ: "immune", label: "Custom immune context", direction: "baseline", magnitude: 26, ...trace("scenario-custom", "Custom biological state") }
+    ],
+    systemEffects: [
+      { system: "Custom sandbox state", label: "User-configured pressure", status: "modulated", magnitude: 28, ...trace("scenario-custom", "Custom biological state") }
+    ],
+    phenotypeEffects: [
+      { phenotype: "User-defined phenotype", label: "Custom observed example", direction: "modulates", magnitude: 28, ...trace("scenario-custom", "Custom biological state") }
+    ],
+    limitations: ["Depends on user-selected assumptions", "Hypothesis-generating sandbox state only"]
+  },
+  {
     id: "parkinsonism-motor-circuit",
     title: "Parkinson's / motor circuit disruption",
     shortTitle: "Parkinson's",
