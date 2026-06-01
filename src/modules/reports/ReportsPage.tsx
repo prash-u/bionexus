@@ -4,18 +4,21 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { buildReport, reportModes } from "@/lib/reports/reportBuilder";
 import type { ReportPayload } from "@/lib/ontology/types";
 import { useWorkspace } from "@/lib/workspace/workspaceState";
+import { useSandbox } from "@/lib/sandbox/sandboxState";
 
 const labels: Record<ReportPayload["mode"], string> = {
   learner: "Learner Report",
+  educatorSummary: "Educator Summary",
   researchBrief: "Research Brief",
-  executiveSummary: "Executive Summary",
-  investorDemo: "Investor Demonstration"
+  investorDemo: "Investor Demonstration",
+  scenarioExport: "Scenario Export"
 };
 
 export function ReportsPage() {
   const { workspace } = useWorkspace();
+  const { sandbox, activePreset } = useSandbox();
   const [mode, setMode] = useState<ReportPayload["mode"]>("learner");
-  const report = useMemo(() => buildReport(mode, workspace), [mode, workspace]);
+  const report = useMemo(() => buildReport(mode, workspace, sandbox, activePreset), [activePreset, mode, sandbox, workspace]);
   return (
     <div className="space-y-6">
       <GlassCard>

@@ -16,7 +16,7 @@ export function SimulationStudioPage() {
       <GlassCard>
         <p className="text-sm uppercase tracking-[0.18em] text-violet-200">Simulation studio</p>
         <h1 className="mt-2 text-3xl font-semibold text-white">Future home for neural, tremor, DBS, and pathway propagation modules</h1>
-        <p className="mt-2 max-w-3xl text-slate-400">Version 1.0 includes editable conceptual controls. No clinical accuracy is claimed.</p>
+        <p className="mt-2 max-w-3xl text-slate-400">Simulation Studio is a legacy module surface. The primary simulation experience now lives in Body Sandbox. No clinical accuracy is claimed.</p>
       </GlassCard>
       <GlassCard>
         <h2 className="text-lg font-semibold text-white">Interactive perturbation controls</h2>

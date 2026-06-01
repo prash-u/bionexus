@@ -46,3 +46,32 @@ textarea {
     @apply inline-flex items-center justify-center gap-2 rounded-md border border-slate-500/30 bg-slate-950/40 px-4 py-2 text-sm font-medium text-slate-100 transition hover:border-violet-300/50 hover:bg-violet-400/10 focus:outline-none focus:ring-2 focus:ring-violet-300/30;
   }
 }
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 0.18;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.42;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px rgba(34, 211, 238, 0.28));
+  }
+  50% {
+    filter: drop-shadow(0 0 7px rgba(34, 211, 238, 0.75));
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 3.8s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2.8s ease-in-out infinite;
+}

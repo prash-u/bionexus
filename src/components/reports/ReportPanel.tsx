@@ -7,7 +7,7 @@ export function ReportPanel({ report }: { report: ReportPayload }) {
     <GlassCard>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-sm uppercase tracking-[0.18em] text-cyan-200">Generated from Parkinson's demo state</p>
+          <p className="text-sm uppercase tracking-[0.18em] text-cyan-200">Generated from SandboxState</p>
           <h2 className="mt-1 text-2xl font-semibold text-white">{report.title}</h2>
         </div>
         <ExportButton markdown={report.markdown} />

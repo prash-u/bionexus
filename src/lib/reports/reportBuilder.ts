@@ -1,15 +1,13 @@
-import { parkinsonsDemo } from "@/data/demo/parkinsons/program";
-import type { BioWorkspaceState, ReportPayload } from "@/lib/ontology/types";
+import type { BioWorkspaceState, ReportPayload, SandboxState, ScenarioPreset } from "@/lib/ontology/types";
+import { intendedUseStatement } from "@/lib/safety/intendedUse";
 
-const sharedFooter =
-  "Intended use: education, biological reasoning, simulation, hypothesis generation and scientific communication only. Not diagnostic, clinical decision support, treatment recommendation, or a substitute for qualified professional judgement.";
-
-export function buildReport(mode: ReportPayload["mode"], workspace: BioWorkspaceState): ReportPayload {
+export function buildReport(mode: ReportPayload["mode"], workspace: BioWorkspaceState, sandbox: SandboxState, activePreset: ScenarioPreset): ReportPayload {
   const titleMap = {
     learner: "Learner Report",
+    educatorSummary: "Educator Summary",
     researchBrief: "Research Brief",
-    executiveSummary: "Executive Summary",
-    investorDemo: "Investor Demonstration"
+    investorDemo: "Investor Demonstration",
+    scenarioExport: "Scenario Export"
   };
   const entitySummary = workspace.entities
     .slice(0, 14)
@@ -22,17 +20,46 @@ export function buildReport(mode: ReportPayload["mode"], workspace: BioWorkspace
   const hypothesisSummary = workspace.hypotheses
     .map((hypothesis) => `- ${hypothesis.title} [${hypothesis.status.replace(/_/g, " ")}]: ${hypothesis.question}`)
     .join("\n") || "- No user-authored hypotheses yet.";
+  const selectedInterventions = sandbox.scenario.interventions.map((item) => `- ${item.label}: ${item.expectedDirection} ${item.affectedPathwayOrSystem}; uncertainty ${item.uncertainty}%`).join("\n") || "- No interventions selected.";
+  const bodySummary = activePreset.organEffects.map((effect) => `- ${effect.organ}: ${effect.label} (${effect.direction}, ${effect.magnitude}%)`).join("\n");
+  const moduleSummary = sandbox.moduleOutputs
+    .filter((output) => output.includedInReport)
+    .map((output) => `- ${output.title}: ${output.summary}`)
+    .join("\n");
 
-  const markdown = `# ${titleMap[mode]}: ${parkinsonsDemo.program.name}
+  const markdown = `# ${titleMap[mode]}: ${sandbox.scenario.title}
 
 ## Scope
-BioNexus 1.0 demonstrates a privacy-first biological reasoning workspace through an editable Parkinson's / parkinsonism vertical slice.
+BioNexus is a privacy-first body-scale biological reasoning sandbox. This report summarizes the current configured scenario, assumptions, biological consequence map and explanatory trail.
+
+## Selected Scenario
+- Preset: ${activePreset.title}
+- Category: ${activePreset.category}
+- Description: ${activePreset.description}
+
+## Baseline Assumptions
+${sandbox.scenario.baselineProfile.assumptions.map((item) => `- ${item}`).join("\n")}
+
+## Predispositions
+${sandbox.scenario.predispositions.map((item) => `- ${item.label}: ${item.description}`).join("\n")}
+
+## Perturbations
+${sandbox.scenario.perturbations.map((item) => `- ${item.label}: ${item.direction} at ${item.targetLayer}; ${item.description}`).join("\n")}
+
+## Interventions / Modulators
+${selectedInterventions}
+
+## Affected Systems
+${activePreset.affectedSystems.map((item) => `- ${item}`).join("\n")}
+
+## Body Consequence Map
+${bodySummary}
 
 ## Key Biological Objects
 ${entitySummary}
 
 ## Reasoning Trail
-${workspace.reasoningTrail.map((step) => `- ${step}`).join("\n")}
+${activePreset.reasoningTrail.steps.map((step) => `- ${step}`).join("\n")}
 
 ## Relationship Highlights
 ${relationshipSummary}
@@ -40,31 +67,32 @@ ${relationshipSummary}
 ## Hypotheses
 ${hypothesisSummary}
 
-## Simulation Snapshot
-- Tremor amplitude: ${workspace.simulationSettings.tremorAmplitude}
-- Dopamine tone: ${workspace.simulationSettings.dopamineTone}
-- Proteostasis stress: ${workspace.simulationSettings.proteostasisStress}
-- DBS modulation: ${workspace.simulationSettings.dbsModulation}
+## Included Module Outputs
+${moduleSummary || "- No module outputs selected."}
+
+## Limitations
+${activePreset.limitations.map((item) => `- ${item}`).join("\n")}
 
 ## Interpretation
-This report explains biological relationships and exploratory perturbations. It does not diagnose, predict disease, recommend treatment, or provide clinical guidance.
+This report explains educational biological relationships and exploratory model consequences. It does not provide clinical conclusions, patient-specific medical advice, care plans, or professional guidance.
 
 ## Safety
-${sharedFooter}
+${intendedUseStatement}
 `;
 
   return {
-    id: `report-${mode}-parkinsons`,
+    id: `report-${mode}-${sandbox.activeScenarioId}`,
     mode,
     title: titleMap[mode],
     markdown,
-    generatedFromProgramId: workspace.programId
+    generatedFromProgramId: sandbox.activeScenarioId
   };
 }
 
 export const reportModes: ReportPayload["mode"][] = [
   "learner",
+  "educatorSummary",
   "researchBrief",
-  "executiveSummary",
-  "investorDemo"
+  "investorDemo",
+  "scenarioExport"
 ];

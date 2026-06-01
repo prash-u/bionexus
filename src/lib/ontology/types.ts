@@ -31,6 +31,40 @@ export type UserMode =
 
 export type ComplexityLevel = "basic" | "intermediate" | "advanced" | "expert";
 
+export type BiologicalLayer =
+  | "genes"
+  | "proteins"
+  | "pathways"
+  | "cells"
+  | "tissues"
+  | "organs"
+  | "systems"
+  | "phenotypes"
+  | "interventions";
+
+export type ScenarioCategory =
+  | "neural"
+  | "metabolic"
+  | "ocular"
+  | "immune"
+  | "cardiovascular"
+  | "mitochondrial"
+  | "environmental"
+  | "custom";
+
+export type BodyRegionId =
+  | "brain"
+  | "eye"
+  | "heart"
+  | "lungs"
+  | "liver"
+  | "pancreas"
+  | "gut"
+  | "kidney"
+  | "muscle"
+  | "immune"
+  | "peripheralNerves";
+
 export interface Evidence {
   id: string;
   label: string;
@@ -38,6 +72,11 @@ export interface Evidence {
   evidenceType: "curated_demo" | "review" | "mechanistic" | "observational" | "hypothesis";
   publicationIds: string[];
   confidence: number;
+}
+
+export interface EvidenceItem extends Evidence {
+  scenarioContext?: string;
+  assumptions?: string[];
 }
 
 export interface Publication {
@@ -143,6 +182,156 @@ export interface Relationship {
   notes: string;
 }
 
+export interface EffectTrace {
+  sourceEntityId: string;
+  relationshipId?: string;
+  confidence: number;
+  evidenceIds: string[];
+  scenarioContext: string;
+  assumptions: string[];
+}
+
+export interface GeneSignal extends EffectTrace {
+  symbol: string;
+  direction: "up" | "down" | "variant" | "baseline" | "unknown";
+  magnitude: number;
+}
+
+export interface ProteinSignal extends EffectTrace {
+  protein: string;
+  direction: "increased" | "decreased" | "misfolded" | "baseline" | "unknown";
+  magnitude: number;
+}
+
+export interface PathwaySignal extends EffectTrace {
+  pathway: string;
+  direction: "activated" | "suppressed" | "dysregulated" | "rescued" | "baseline";
+  magnitude: number;
+}
+
+export interface CellTypeEffect extends EffectTrace {
+  cellType: string;
+  effect: string;
+  magnitude: number;
+}
+
+export interface TissueEffect extends EffectTrace {
+  tissue: string;
+  effect: string;
+  magnitude: number;
+}
+
+export interface OrganEffect extends EffectTrace {
+  organ: BodyRegionId;
+  label: string;
+  direction: "stress" | "activation" | "suppression" | "support" | "baseline";
+  magnitude: number;
+}
+
+export interface SystemEffect extends EffectTrace {
+  system: string;
+  label: string;
+  status: "stable" | "stressed" | "activated" | "suppressed" | "modulated";
+  magnitude: number;
+}
+
+export interface PhenotypeEffect extends EffectTrace {
+  phenotype: string;
+  label: string;
+  direction: "emerges" | "reduces" | "modulates" | "baseline";
+  magnitude: number;
+}
+
+export interface BaselineProfile {
+  id: string;
+  label: string;
+  description: string;
+  assumptions: string[];
+}
+
+export interface Predisposition {
+  id: string;
+  label: string;
+  targetLayer: BiologicalLayer;
+  description: string;
+  confidence: number;
+}
+
+export interface Perturbation {
+  id: string;
+  label: string;
+  targetLayer: BiologicalLayer;
+  direction: "increase" | "decrease" | "damage" | "inhibit" | "stimulate" | "rescue" | "modulate";
+  description: string;
+  magnitude: number;
+}
+
+export interface ScenarioIntervention {
+  id: string;
+  label: string;
+  category: InterventionCategory | "CRISPR / Genetic Engineering" | "Environmental Modifier";
+  targetLayer: BiologicalLayer;
+  affectedPathwayOrSystem: string;
+  expectedDirection: "increase" | "decrease" | "stabilise" | "modulate" | "uncertain";
+  uncertainty: number;
+  safetyLanguage: string;
+  relatedScenarioIds: string[];
+}
+
+export interface BodySystemState {
+  id: string;
+  label: string;
+  status: "stable" | "watch" | "stressed" | "modulated";
+  intensity: number;
+  bodyRegionIds: BodyRegionId[];
+  summary: string;
+}
+
+export interface ReasoningTrail {
+  id: string;
+  steps: string[];
+}
+
+export interface ModuleOutput {
+  moduleId: "body-sandbox" | "body-atlas" | "neural-circuit" | "knowledge-graph" | "interventions";
+  title: string;
+  summary: string;
+  includedInReport: boolean;
+}
+
+export interface ScenarioPreset {
+  id: string;
+  title: string;
+  shortTitle: string;
+  category: ScenarioCategory;
+  description: string;
+  affectedSystems: string[];
+  affectedRegions: BodyRegionId[];
+  keyGenes: string[];
+  keyPathways: string[];
+  predispositions: Predisposition[];
+  perturbations: Perturbation[];
+  interventions: ScenarioIntervention[];
+  baselineProfile: BaselineProfile;
+  reasoningTrail: ReasoningTrail;
+  organEffects: OrganEffect[];
+  systemEffects: SystemEffect[];
+  phenotypeEffects: PhenotypeEffect[];
+  limitations: string[];
+}
+
+export interface Scenario {
+  id: string;
+  title: string;
+  presetId?: string;
+  baselineProfile: BaselineProfile;
+  predispositions: Predisposition[];
+  perturbations: Perturbation[];
+  interventions: ScenarioIntervention[];
+  activeLayers: BiologicalLayer[];
+  notes: string;
+}
+
 export interface DiseaseProgram {
   id: string;
   name: string;
@@ -164,9 +353,21 @@ export interface SimulationState {
   disclaimer: string;
 }
 
+export interface SandboxState {
+  version: "1.1";
+  activeScenarioId: string;
+  scenario: Scenario;
+  presets: ScenarioPreset[];
+  bodySystems: BodySystemState[];
+  activeLayers: BiologicalLayer[];
+  selectedRegionId: BodyRegionId;
+  moduleOutputs: ModuleOutput[];
+  updatedAt: string;
+}
+
 export interface ReportPayload {
   id: string;
-  mode: "learner" | "researchBrief" | "executiveSummary" | "investorDemo";
+  mode: "learner" | "educatorSummary" | "researchBrief" | "investorDemo" | "scenarioExport";
   title: string;
   markdown: string;
   generatedFromProgramId: string;

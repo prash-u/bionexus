@@ -1,10 +1,10 @@
 import { GlassCard } from "@/components/ui/GlassCard";
-import { parkinsonsDemo } from "@/data/demo/parkinsons/program";
+import { scenarioPresets } from "@/data/scenarios/presets";
 
-const categories = ["Drug", "DBS", "Gene Therapy", "Exercise", "Diet", "Sleep", "Neural Interface", "Prosthetic", "Experimental"];
+const categories = ["Drug", "DBS / stimulation", "Gene therapy", "CRISPR / genetic engineering", "Exercise", "Diet", "Sleep", "Prosthetic / neural interface", "Environmental modifier", "Experimental"];
 
 export function InterventionsPage() {
-  const interventions = parkinsonsDemo.entities.filter((entity) => entity.type === "intervention");
+  const interventions = scenarioPresets.flatMap((preset) => preset.interventions.map((intervention) => ({ ...intervention, preset: preset.shortTitle })));
   return (
     <div className="space-y-6">
       <GlassCard>
@@ -22,9 +22,11 @@ export function InterventionsPage() {
         {interventions.map((entity) => (
           <GlassCard key={entity.id}>
             <span className="rounded-full border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs text-cyan-100">{entity.category}</span>
-            <h2 className="mt-4 text-xl font-semibold text-white">{entity.name}</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-400">{entity.description}</p>
-            <p className="mt-4 rounded-lg border border-amber-300/25 bg-amber-300/10 p-3 text-xs leading-5 text-amber-100">{entity.safetyNote}</p>
+            <h2 className="mt-4 text-xl font-semibold text-white">{entity.label}</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-400">Target layer: {entity.targetLayer}. Affected pathway/system: {entity.affectedPathwayOrSystem}. Demo direction: {entity.expectedDirection}.</p>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-800"><div className="h-full rounded-full bg-violet-300" style={{ width: `${100 - entity.uncertainty}%` }} /></div>
+            <p className="mt-2 text-xs text-slate-500">Related preset: {entity.preset}. Uncertainty: {entity.uncertainty}%.</p>
+            <p className="mt-4 rounded-lg border border-amber-300/25 bg-amber-300/10 p-3 text-xs leading-5 text-amber-100">{entity.safetyLanguage}</p>
           </GlassCard>
         ))}
       </div>

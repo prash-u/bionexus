@@ -27,10 +27,10 @@ export function WorkspacePage() {
         <p className="text-sm uppercase tracking-[0.18em] text-cyan-200">Mission control</p>
         <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-semibold text-white">Parkinson's biological reasoning workspace</h1>
+            <h1 className="text-3xl font-semibold text-white">Ontology authoring workspace</h1>
             <p className="mt-2 max-w-3xl text-slate-400">Author objects, connect relationships, build hypotheses, and turn the map into reports.</p>
           </div>
-          <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-4 py-2 text-sm text-emerald-100">Selected program: Parkinson's 1.0</span>
+          <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-4 py-2 text-sm text-emerald-100">Scenario-linked ontology layer</span>
         </div>
       </GlassCard>
       <div className="grid gap-5 xl:grid-cols-[0.75fr_1.25fr]">

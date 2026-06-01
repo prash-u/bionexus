@@ -1,11 +1,13 @@
-import { BarChart3, BrainCircuit, FileText, FlaskConical, Home, Network, Settings, SlidersHorizontal } from "lucide-react";
+import { BarChart3, BrainCircuit, FileText, FlaskConical, Home, Network, ScanHeart, Settings, SlidersHorizontal, UserRoundSearch } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const nav = [
   { to: "/", label: "Home", icon: Home },
+  { to: "/body-sandbox", label: "Body Sandbox", icon: ScanHeart },
   { to: "/workspace", label: "Workspace", icon: BrainCircuit },
+  { to: "/body-atlas", label: "Body Atlas", icon: UserRoundSearch },
+  { to: "/neural-circuit", label: "Neural Circuit", icon: SlidersHorizontal },
   { to: "/knowledge-graph", label: "Knowledge Graph", icon: Network },
-  { to: "/simulation-studio", label: "Simulation Studio", icon: SlidersHorizontal },
   { to: "/interventions", label: "Interventions", icon: FlaskConical },
   { to: "/reports", label: "Reports", icon: FileText },
   { to: "/settings", label: "Settings", icon: Settings }
@@ -20,7 +22,7 @@ export function Sidebar() {
         </div>
         <div>
           <p className="text-lg font-semibold text-white">BioNexus</p>
-          <p className="text-xs text-slate-400">Biological reasoning workspace</p>
+          <p className="text-xs text-slate-400">Body-scale reasoning sandbox</p>
         </div>
       </div>
       <nav className="space-y-2">

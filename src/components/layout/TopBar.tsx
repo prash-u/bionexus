@@ -1,22 +1,26 @@
 import { Activity, ShieldCheck } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useAppSettings } from "@/lib/storage/localStorage";
+import { useSandbox } from "@/lib/sandbox/sandboxState";
 
 const mobileNav = [
+  ["/body-sandbox", "Sandbox"],
   ["/workspace", "Workspace"],
+  ["/body-atlas", "Atlas"],
+  ["/neural-circuit", "Neural"],
   ["/knowledge-graph", "Graph"],
-  ["/simulation-studio", "Sim"],
   ["/reports", "Reports"]
 ];
 
 export function TopBar() {
   const { userMode, complexityLevel } = useAppSettings();
+  const { activePreset } = useSandbox();
   return (
     <header className="sticky top-0 z-30 border-b border-slate-700/40 bg-slate-950/60 px-4 py-3 backdrop-blur-xl lg:px-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-sm text-slate-300">
           <Activity className="h-4 w-4 text-cyan-200" />
-          <span>Parkinson's 1.0 editable workspace</span>
+          <span>Body sandbox: {activePreset.shortTitle}</span>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="rounded-full border border-violet-300/30 bg-violet-300/10 px-3 py-1 capitalize text-violet-100">

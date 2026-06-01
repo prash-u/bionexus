@@ -27,7 +27,7 @@ export function WorkspaceIO() {
       <div className="space-y-3">
         <button className="nexus-button w-full" onClick={download}><Download className="h-4 w-4" /> Export workspace JSON</button>
         <button className="nexus-button-secondary w-full" onClick={importJson}><Upload className="h-4 w-4" /> Import pasted JSON</button>
-        <button className="nexus-button-secondary w-full" onClick={resetWorkspace}><RotateCcw className="h-4 w-4" /> Reset to Parkinson's demo</button>
+        <button className="nexus-button-secondary w-full" onClick={resetWorkspace}><RotateCcw className="h-4 w-4" /> Reset ontology workspace</button>
         {message ? <p className="text-sm text-cyan-100">{message}</p> : null}
       </div>
       <textarea

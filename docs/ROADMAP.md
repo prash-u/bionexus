@@ -4,21 +4,21 @@
 
 Create the standalone repository, shared contracts, local-first settings, first-launch safety flow and documentation.
 
-## Phase 1: Parkinson's Vertical Slice
+## Phase 1: Body Sandbox Foundation
 
-Demonstrate cross-scale reasoning from genes to reports through a curated Parkinson's / parkinsonism demo.
+Demonstrate cross-scale reasoning from configurable scenario presets to body-scale consequence maps and reports.
 
-## Version 1.0 Working Surface
+## Version 1.1 Body Sandbox
 
-BioNexus now supports local entity authoring, relationship creation, hypothesis capture, reasoning trail editing, simulation sliders, markdown reports from workspace state, and workspace JSON import/export.
+BioNexus now supports scenario presets, baseline assumptions, predispositions, perturbations, interventions, whole-body visualisation, biological layer toggles, neural module context, pathway reasoning and reports from `SandboxState`.
 
 ## Phase 2: Import Network Pulse Analyzer Concepts
 
-Map network analysis concepts into relationship and evidence models.
+Map network analysis concepts into pathway signals, relationship confidence, evidence items and upstream/downstream scenario links.
 
 ## Phase 3: Import Neural Pulse Play Concepts
 
-Bring neural circuit simulation concepts into Simulation Studio.
+Bring neural circuit simulation concepts into the Neural Circuit module and connect them back to Body Sandbox.
 
 ## Phase 4: Connect Live Vision Hand Pose/Tremor Input
 
