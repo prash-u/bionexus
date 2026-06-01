@@ -6,7 +6,7 @@ import { parkinsonsRelationships } from "@/data/demo/parkinsons/relationships";
 export const parkinsonsProgram: DiseaseProgram = {
   id: "parkinsons-v0",
   name: "Parkinson's / Parkinsonism",
-  description: "A complete v0.1 vertical slice connecting genes, proteins, pathways, neural systems, phenotypes, interventions, and reports.",
+  description: "A complete 1.0 editable vertical slice connecting genes, proteins, pathways, neural systems, phenotypes, interventions, hypotheses, simulations, and reports.",
   verticalSlice: "Parkinson's disease / parkinsonism",
   entityIds: parkinsonsEntities.map((entity) => entity.id),
   relationshipIds: parkinsonsRelationships.map((relationship) => relationship.id),

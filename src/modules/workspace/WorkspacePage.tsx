@@ -1,14 +1,25 @@
+import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { EntityCard } from "@/components/cards/EntityCard";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { EntityAuthoringPanel } from "@/components/workspace/EntityAuthoringPanel";
+import { HypothesisLab } from "@/components/workspace/HypothesisLab";
 import { ReasoningTrail } from "@/components/workspace/ReasoningTrail";
-import { parkinsonsDemo } from "@/data/demo/parkinsons/program";
 import { abstractionLayers, entityTypeLabels } from "@/data/ontology/entityTypes";
+import { useWorkspace } from "@/lib/workspace/workspaceState";
 
 export function WorkspacePage() {
-  const keyEntities = parkinsonsDemo.entities.filter((entity) =>
+  const { workspace, addTrailStep, removeTrailStep, selectEntity } = useWorkspace();
+  const keyEntities = workspace.entities.filter((entity) =>
     ["gene-snca", "protein-alpha-syn", "pathway-proteostasis", "cell-dopaminergic-neuron", "tissue-basal-ganglia", "intervention-dbs"].includes(entity.id)
-  );
+  ).concat(workspace.entities.filter((entity) => entity.id.startsWith("user-")).slice(0, 4));
+  const [trailDraft, setTrailDraft] = useState("");
+
+  const addStep = () => {
+    if (!trailDraft.trim()) return;
+    addTrailStep(trailDraft.trim());
+    setTrailDraft("");
+  };
 
   return (
     <div className="space-y-6">
@@ -17,9 +28,9 @@ export function WorkspacePage() {
         <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="text-3xl font-semibold text-white">Parkinson's biological reasoning workspace</h1>
-            <p className="mt-2 max-w-3xl text-slate-400">Move across abstraction layers without leaving the same conceptual map.</p>
+            <p className="mt-2 max-w-3xl text-slate-400">Author objects, connect relationships, build hypotheses, and turn the map into reports.</p>
           </div>
-          <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-4 py-2 text-sm text-emerald-100">Selected program: Parkinson's v0.1</span>
+          <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-4 py-2 text-sm text-emerald-100">Selected program: Parkinson's 1.0</span>
         </div>
       </GlassCard>
       <div className="grid gap-5 xl:grid-cols-[0.75fr_1.25fr]">
@@ -36,13 +47,17 @@ export function WorkspacePage() {
           </div>
         </GlassCard>
         <div className="grid gap-4 md:grid-cols-2">
-          {keyEntities.map((entity) => <EntityCard key={entity.id} entity={entity} />)}
+          {keyEntities.map((entity) => <EntityCard key={entity.id} entity={entity} onSelect={selectEntity} />)}
         </div>
       </div>
       <div className="grid gap-5 lg:grid-cols-2">
         <GlassCard>
           <h2 className="text-lg font-semibold text-white">Current reasoning trail</h2>
-          <div className="mt-4"><ReasoningTrail steps={parkinsonsDemo.program.defaultReasoningTrail} /></div>
+          <div className="mt-4"><ReasoningTrail steps={workspace.reasoningTrail} onRemove={removeTrailStep} /></div>
+          <div className="mt-4 flex gap-2">
+            <input className="min-w-0 flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm" placeholder="Add a reasoning step..." value={trailDraft} onChange={(event) => setTrailDraft(event.target.value)} />
+            <button className="nexus-button" onClick={addStep}>Add</button>
+          </div>
         </GlassCard>
         <GlassCard>
           <h2 className="text-lg font-semibold text-white">Next suggested exploration</h2>
@@ -53,6 +68,14 @@ export function WorkspacePage() {
           </div>
         </GlassCard>
       </div>
+      <GlassCard>
+        <h2 className="mb-4 text-lg font-semibold text-white">Author the map</h2>
+        <EntityAuthoringPanel />
+      </GlassCard>
+      <GlassCard>
+        <h2 className="mb-4 text-lg font-semibold text-white">Hypothesis lab</h2>
+        <HypothesisLab />
+      </GlassCard>
     </div>
   );
 }

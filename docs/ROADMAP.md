@@ -8,6 +8,10 @@ Create the standalone repository, shared contracts, local-first settings, first-
 
 Demonstrate cross-scale reasoning from genes to reports through a curated Parkinson's / parkinsonism demo.
 
+## Version 1.0 Working Surface
+
+BioNexus now supports local entity authoring, relationship creation, hypothesis capture, reasoning trail editing, simulation sliders, markdown reports from workspace state, and workspace JSON import/export.
+
 ## Phase 2: Import Network Pulse Analyzer Concepts
 
 Map network analysis concepts into relationship and evidence models.

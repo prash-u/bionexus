@@ -3,6 +3,7 @@ import { ReportPanel } from "@/components/reports/ReportPanel";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { buildReport, reportModes } from "@/lib/reports/reportBuilder";
 import type { ReportPayload } from "@/lib/ontology/types";
+import { useWorkspace } from "@/lib/workspace/workspaceState";
 
 const labels: Record<ReportPayload["mode"], string> = {
   learner: "Learner Report",
@@ -12,8 +13,9 @@ const labels: Record<ReportPayload["mode"], string> = {
 };
 
 export function ReportsPage() {
+  const { workspace } = useWorkspace();
   const [mode, setMode] = useState<ReportPayload["mode"]>("learner");
-  const report = useMemo(() => buildReport(mode), [mode]);
+  const report = useMemo(() => buildReport(mode, workspace), [mode, workspace]);
   return (
     <div className="space-y-6">
       <GlassCard>

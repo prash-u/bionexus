@@ -171,3 +171,35 @@ export interface ReportPayload {
   markdown: string;
   generatedFromProgramId: string;
 }
+
+export interface ReasoningHypothesis {
+  id: string;
+  title: string;
+  question: string;
+  rationale: string;
+  linkedEntityIds: string[];
+  linkedRelationshipIds: string[];
+  status: "draft" | "active" | "ready_for_report";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WorkspaceSimulationSettings {
+  tremorAmplitude: number;
+  dopamineTone: number;
+  proteostasisStress: number;
+  dbsModulation: number;
+}
+
+export interface BioWorkspaceState {
+  version: "1.0";
+  programId: string;
+  entities: AnyBioEntity[];
+  relationships: Relationship[];
+  hypotheses: ReasoningHypothesis[];
+  reasoningTrail: string[];
+  selectedEntityId: string;
+  selectedRelationshipId?: string;
+  simulationSettings: WorkspaceSimulationSettings;
+  updatedAt: string;
+}

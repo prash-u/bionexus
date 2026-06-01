@@ -16,7 +16,7 @@ export function TopBar() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-sm text-slate-300">
           <Activity className="h-4 w-4 text-cyan-200" />
-          <span>Parkinson's v0.1 vertical slice</span>
+          <span>Parkinson's 1.0 editable workspace</span>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="rounded-full border border-violet-300/30 bg-violet-300/10 px-3 py-1 capitalize text-violet-100">

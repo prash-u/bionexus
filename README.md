@@ -10,9 +10,19 @@ This platform is for education, biological reasoning, simulation, hypothesis gen
 
 ## Current Demo Scope
 
-Version 0.1 proves the architecture through a static Parkinson's disease / parkinsonism vertical slice. The demo connects Parkinson's-related genes, proteins, pathways, neural systems, affected tissues/organs, phenotypes, exploratory perturbations and generated reports.
+Version 1.0 turns the Parkinson's disease / parkinsonism vertical slice into an editable local workspace. The app connects Parkinson's-related genes, proteins, pathways, neural systems, affected tissues/organs, phenotypes, exploratory perturbations, hypotheses and generated reports.
 
-The data is curated demo data and does not imply clinical accuracy.
+The seed data is curated demo data and does not imply clinical accuracy.
+
+## What You Can Do
+
+- Add biological objects across the shared ontology.
+- Connect objects with first-class relationships.
+- Build and edit a reasoning trail.
+- Save hypotheses linked to selected entities and relationships.
+- Adjust conceptual simulation controls.
+- Generate reports from the actual current workspace.
+- Export, import and reset local workspace JSON.
 
 ## Local Development
 
@@ -24,7 +34,7 @@ npm run build
 
 ## Future Module Integration Plan
 
-Future imports from Network Pulse Analyzer, Neural Pulse Play, Live Vision Model Lab and BioBody Insights should map their concepts into the shared ontology contracts in `src/lib/ontology/types.ts` before adding module-specific UI.
+Future imports from Network Pulse Analyzer, Neural Pulse Play, Live Vision Model Lab and BioBody Insights should map their concepts into the shared ontology contracts in `src/lib/ontology/types.ts` and the local workspace model in `src/lib/workspace/workspaceState.tsx` before adding module-specific UI.
 
 ## Reference Repositories
 

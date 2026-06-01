@@ -2,6 +2,7 @@ import { ComplexitySelector } from "@/components/ui/ComplexitySelector";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { ModeSelector } from "@/components/ui/ModeSelector";
 import { SafetyNotice } from "@/components/safety/SafetyNotice";
+import { WorkspaceIO } from "@/components/workspace/WorkspaceIO";
 import { useAppSettings } from "@/lib/storage/localStorage";
 
 export function SettingsPage() {
@@ -22,6 +23,10 @@ export function SettingsPage() {
         <ComplexitySelector />
       </GlassCard>
       <SafetyNotice />
+      <GlassCard>
+        <h2 className="mb-4 text-lg font-semibold text-white">Workspace data</h2>
+        <WorkspaceIO />
+      </GlassCard>
       <GlassCard>
         <h2 className="text-lg font-semibold text-white">Privacy and theme notes</h2>
         <p className="mt-2 text-sm leading-6 text-slate-400">BioNexus is dark-first, local-first, and designed for offline-friendly demonstrations. Future imported modules should share the ontology contracts before adding new visual surfaces.</p>

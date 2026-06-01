@@ -1,10 +1,11 @@
 import { relationshipTypeLabels } from "@/data/ontology/relationshipTypes";
-import { getEntity } from "@/lib/ontology/graph";
 import type { Relationship } from "@/lib/ontology/types";
+import { useWorkspace } from "@/lib/workspace/workspaceState";
 
 export function RelationshipCard({ relationship }: { relationship: Relationship }) {
-  const source = getEntity(relationship.sourceId);
-  const target = getEntity(relationship.targetId);
+  const { workspace } = useWorkspace();
+  const source = workspace.entities.find((entity) => entity.id === relationship.sourceId);
+  const target = workspace.entities.find((entity) => entity.id === relationship.targetId);
   return (
     <div className="rounded-lg border border-slate-600/30 bg-slate-950/40 p-4">
       <div className="flex flex-wrap items-center gap-2 text-sm">
