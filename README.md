@@ -43,6 +43,21 @@ npm run build
 npm test
 ```
 
+In GitHub Codespaces, first confirm Node is 20 or newer:
+
+```bash
+node -v
+```
+
+If it is older, switch before running Vite:
+
+```bash
+nvm install 20
+nvm use 20
+npm install
+npm run dev:host
+```
+
 ## Future Module Integration Plan
 
 Future imports from Live Vision Model Lab and deeper BioBody Insights concepts should map their concepts into the shared ontology contracts in `src/lib/ontology/types.ts`, the local sandbox model in `src/lib/sandbox/sandboxState.tsx`, and the scenario presets in `src/data/scenarios/presets.ts` before adding module-specific UI. Network Pulse-style signal import and Neural Pulse-style circuit state are now implemented as data-to-sandbox bridges.

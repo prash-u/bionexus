@@ -4,12 +4,12 @@
   "version": "1.5.0",
   "type": "module",
   "scripts": {
-    "dev": "node ./scripts/vite-with-crypto.mjs --host 0.0.0.0",
-    "dev:local": "node ./scripts/vite-with-crypto.mjs",
-    "build": "tsc -b && node ./scripts/vite-with-crypto.mjs build",
+    "dev": "vite",
+    "dev:host": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test": "vitest run",
-    "preview": "node ./scripts/vite-with-crypto.mjs preview"
+    "preview": "vite preview"
   },
   "dependencies": {
     "clsx": "^2.1.1",
