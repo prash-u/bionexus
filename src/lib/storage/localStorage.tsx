@@ -6,7 +6,8 @@ const keys = {
   intendedUseAcknowledged: "bionexus:intended-use-acknowledged",
   userMode: "bionexus:user-mode",
   complexityLevel: "bionexus:complexity-level",
-  diseaseProgram: "bionexus:last-disease-program"
+  diseaseProgram: "bionexus:last-disease-program",
+  sidebarCollapsed: "bionexus:sidebar-collapsed"
 };
 
 interface AppSettings {
@@ -14,10 +15,12 @@ interface AppSettings {
   userMode: UserMode;
   complexityLevel: ComplexityLevel;
   diseaseProgramId: string;
+  sidebarCollapsed: boolean;
   setIntendedUseAcknowledged: (value: boolean) => void;
   setUserMode: (value: UserMode) => void;
   setComplexityLevel: (value: ComplexityLevel) => void;
   setDiseaseProgramId: (value: string) => void;
+  setSidebarCollapsed: (value: boolean) => void;
   resetAcknowledgement: () => void;
 }
 
@@ -42,6 +45,9 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
   const [diseaseProgramId, setDiseaseProgramState] = useState<string>(() =>
     read(keys.diseaseProgram, "parkinsons-v0")
   );
+  const [sidebarCollapsed, setSidebarCollapsedState] = useState(() =>
+    readBool(keys.sidebarCollapsed)
+  );
 
   const value = useMemo<AppSettings>(
     () => ({
@@ -49,6 +55,7 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
       userMode,
       complexityLevel,
       diseaseProgramId,
+      sidebarCollapsed,
       setIntendedUseAcknowledged(value) {
         window.localStorage.setItem(keys.intendedUseAcknowledged, String(value));
         setAcknowledgedState(value);
@@ -65,12 +72,16 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
         window.localStorage.setItem(keys.diseaseProgram, value);
         setDiseaseProgramState(value);
       },
+      setSidebarCollapsed(value) {
+        window.localStorage.setItem(keys.sidebarCollapsed, String(value));
+        setSidebarCollapsedState(value);
+      },
       resetAcknowledgement() {
         window.localStorage.removeItem(keys.intendedUseAcknowledged);
         setAcknowledgedState(false);
       }
     }),
-    [complexityLevel, diseaseProgramId, intendedUseAcknowledged, userMode]
+    [complexityLevel, diseaseProgramId, intendedUseAcknowledged, sidebarCollapsed, userMode]
   );
 
   return <AppSettingsContext.Provider value={value}>{children}</AppSettingsContext.Provider>;

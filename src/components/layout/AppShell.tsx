@@ -1,6 +1,7 @@
 import { CurrentRoute } from "@/app/router";
 import { IntendedUseModal } from "@/components/safety/IntendedUseModal";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { ScenarioContinuityRail } from "@/components/layout/ScenarioContinuityRail";
 import { TopBar } from "@/components/layout/TopBar";
 
 export function AppShell() {
@@ -9,6 +10,7 @@ export function AppShell() {
       <Sidebar />
       <div className="min-w-0 flex-1">
         <TopBar />
+        <ScenarioContinuityRail />
         <main className="mx-auto w-full max-w-7xl px-4 py-6 lg:px-8">
           <CurrentRoute />
         </main>

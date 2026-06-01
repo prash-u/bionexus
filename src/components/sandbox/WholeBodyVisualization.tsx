@@ -1,13 +1,14 @@
 import { Maximize2, Minus, Plus, RotateCcw } from "lucide-react";
 import { useId, useMemo, useState, type PointerEvent, type ReactNode, type WheelEvent } from "react";
 import { bodyRegionLabels } from "@/data/scenarios/presets";
-import type { BodyRegionId, OrganEffect } from "@/lib/ontology/types";
+import type { BodyRegionId, MolecularEdge, OrganEffect } from "@/lib/ontology/types";
+import { molecularProvenanceLabel } from "@/lib/molecular/importAdapters";
 import { useSandbox } from "@/lib/sandbox/sandboxState";
 
 type AtlasView = { zoom: number; panX: number; panY: number };
-type Region = {
-  id: BodyRegionId;
-  atlasId?: string;
+type RegionNode = {
+  nodeId: string;
+  regionId: BodyRegionId;
   cx: number;
   cy: number;
   r: number;
@@ -19,37 +20,68 @@ type Region = {
   anchor: "start" | "end" | "middle";
   calloutX: number;
   calloutY: number;
+  cluster?: "muscle" | "immune" | "neural";
 };
 
 const viewBox = { x: 0, y: 0, width: 106.00675, height: 195.36273 };
-const defaultView: AtlasView = { zoom: 1.03, panX: 0, panY: 0 };
+const defaultView: AtlasView = { zoom: 1.04, panX: 0, panY: 0 };
 
-const regions: Region[] = [
-  { id: "brain", cx: 53, cy: 13.8, r: 2.2, hitR: 6.2, haloX: 8, haloY: 6.1, labelX: 53, labelY: 8.8, anchor: "middle", calloutX: 61, calloutY: 7 },
-  { id: "eye", cx: 48.2, cy: 15.5, r: 1.15, hitR: 4.2, haloX: 4.5, haloY: 3.4, labelX: 39, labelY: 15, anchor: "end", calloutX: 17, calloutY: 18 },
-  { id: "lungs", cx: 52.6, cy: 45.4, r: 2.3, hitR: 8.4, haloX: 12.2, haloY: 8.8, labelX: 45.6, labelY: 46.4, anchor: "end", calloutX: 32, calloutY: 42 },
-  { id: "heart", cx: 50, cy: 54, r: 2.25, hitR: 6, haloX: 6.4, haloY: 5, labelX: 43, labelY: 55, anchor: "end", calloutX: 29, calloutY: 55 },
-  { id: "liver", cx: 46, cy: 70.8, r: 2.8, hitR: 7.4, haloX: 10.2, haloY: 5.8, labelX: 39, labelY: 71.8, anchor: "end", calloutX: 26, calloutY: 71 },
-  { id: "pancreas", cx: 54.2, cy: 76.7, r: 1.75, hitR: 6.4, haloX: 7.8, haloY: 3.4, labelX: 61.2, labelY: 77.7, anchor: "start", calloutX: 67, calloutY: 78 },
-  { id: "gut", atlasId: "intestine", cx: 52.8, cy: 95.5, r: 3.05, hitR: 8.2, haloX: 10, haloY: 9, labelX: 59.8, labelY: 96.5, anchor: "start", calloutX: 67, calloutY: 98 },
-  { id: "kidney", cx: 42.7, cy: 83.4, r: 2.05, hitR: 6, haloX: 6, haloY: 6.8, labelX: 35.7, labelY: 84.4, anchor: "end", calloutX: 25, calloutY: 85 },
-  { id: "immune", atlasId: "bone_marrow", cx: 43.8, cy: 137.2, r: 1.95, hitR: 6, haloX: 5.4, haloY: 8.2, labelX: 36.8, labelY: 138.2, anchor: "end", calloutX: 25, calloutY: 141 },
-  { id: "peripheralNerves", atlasId: "skin", cx: 24, cy: 103.5, r: 1.35, hitR: 6.2, haloX: 5, haloY: 5.2, labelX: 17, labelY: 104.5, anchor: "end", calloutX: 7, calloutY: 105 },
-  { id: "muscle", cx: 52.6, cy: 160, r: 2.7, hitR: 8.2, haloX: 10.8, haloY: 8.7, labelX: 59.6, labelY: 161, anchor: "start", calloutX: 68, calloutY: 164 }
+const node = (
+  nodeId: string,
+  regionId: BodyRegionId,
+  cx: number,
+  cy: number,
+  r: number,
+  hitR: number,
+  haloX: number,
+  haloY: number,
+  anchor: RegionNode["anchor"],
+  calloutDx: number,
+  calloutDy: number,
+  cluster?: RegionNode["cluster"]
+): RegionNode => {
+  const labelOffset = anchor === "start" ? 7 : anchor === "end" ? -7 : 0;
+  return {
+    nodeId,
+    regionId,
+    cx,
+    cy,
+    r,
+    hitR,
+    haloX,
+    haloY,
+    labelX: cx + labelOffset,
+    labelY: cy + (anchor === "middle" ? -5 : 1),
+    anchor,
+    calloutX: Math.min(68, Math.max(5, cx + calloutDx)),
+    calloutY: Math.min(184, Math.max(12, cy + calloutDy)),
+    cluster
+  };
+};
+
+const regionNodes: RegionNode[] = [
+  node("brain", "brain", 53, 13.8, 2.2, 6.2, 8, 6.1, "middle", 8, -7, "neural"),
+  node("left-eye", "eye", 48.2, 15.5, 1.15, 4.2, 4.5, 3.4, "end", -31, 2),
+  node("right-eye", "eye", 57.2, 15.5, 1.15, 4.2, 4.5, 3.4, "start", 10, 2),
+  node("thyroid", "thyroid", 53, 31.6, 1.4, 4.4, 4.6, 3.2, "start", 8, -2),
+  node("lungs", "lungs", 52.6, 45.4, 2.3, 8.4, 12.2, 8.8, "end", -20, -3),
+  node("heart", "heart", 50, 54, 2.25, 6, 6.4, 5, "end", -18, 1),
+  node("liver", "liver", 46, 70.8, 2.8, 7.4, 10.2, 5.8, "end", -20, 0),
+  node("stomach", "stomach", 58.3, 68.4, 2.05, 6, 6.5, 5, "start", 9, -1),
+  node("spleen", "spleen", 65, 72.4, 1.45, 4.6, 4.3, 3.6, "start", 8, 1, "immune"),
+  node("pancreas", "pancreas", 54.2, 76.7, 1.75, 6.4, 7.8, 3.4, "start", 9, 1),
+  node("kidney-left", "kidney", 42.7, 83.4, 2.05, 6, 6, 6.8, "end", -17, 2),
+  node("kidney-right", "kidney", 62.7, 83.4, 2.05, 6, 6, 6.8, "start", 8, 2),
+  node("intestine", "intestine", 52.8, 95.5, 3.05, 8.2, 10, 9, "start", 11, 3),
+  node("adipose", "adipose", 55.8, 111.8, 2.5, 7.4, 9.6, 7.6, "start", 12, 3),
+  node("skin", "skin", 24, 103.5, 1.35, 6.2, 5, 5.2, "end", -10, 1),
+  node("bone-marrow", "boneMarrow", 43.8, 137.2, 1.95, 6, 5.4, 8.2, "end", -17, 4, "immune"),
+  node("peripheral-nerves", "peripheralNerves", 26.2, 91, 1.4, 6.2, 5, 5.2, "end", -12, 1, "neural"),
+  node("muscle-left-arm", "muscle", 28.5, 74, 1.8, 6.4, 5.8, 14, "end", -12, -2, "muscle"),
+  node("muscle-right-arm", "muscle", 77.5, 74, 1.8, 6.4, 5.8, 14, "start", 8, -2, "muscle"),
+  node("muscle-left-leg", "muscle", 43.2, 154, 2.45, 8.2, 7.6, 17, "end", -14, 4, "muscle"),
+  node("muscle-right-leg", "muscle", 62.8, 154, 2.45, 8.2, 7.6, 17, "start", 10, 4, "muscle")
 ];
-
-const flows = [
-  ["gut", "liver", -10, 4.8],
-  ["liver", "pancreas", 8, 5.5],
-  ["pancreas", "muscle", -8, 5.1],
-  ["lungs", "heart", 5, 4.6],
-  ["brain", "liver", -18, 7.1],
-  ["liver", "kidney", 8, 5.8],
-  ["immune", "liver", 16, 5.3],
-  ["muscle", "liver", 17, 6.4],
-  ["eye", "brain", 9, 5.6],
-  ["brain", "peripheralNerves", -14, 6.8]
-] as const;
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 const round = (value: number) => Math.round(value * 10) / 10;
@@ -65,15 +97,16 @@ const colorFor = (effect?: OrganEffect) => {
 
 export function WholeBodyVisualization({ compact = false }: { compact?: boolean }) {
   const uid = useId().replace(/:/g, "");
-  const { activePreset, sandbox, selectRegion } = useSandbox();
+  const { activePreset, sandbox, selectRegion, selectMolecularEdge } = useSandbox();
   const [view, setView] = useState<AtlasView>(defaultView);
   const [drag, setDrag] = useState<{ x: number; y: number; panX: number; panY: number } | null>(null);
   const [hovered, setHovered] = useState<BodyRegionId | null>(null);
   const [showFlows, setShowFlows] = useState(true);
   const [showLabels, setShowLabels] = useState(false);
-  const effects = useMemo(() => new Map(activePreset.organEffects.map((effect) => [effect.organ, effect])), [activePreset.organEffects]);
-  const selectedRegion = regions.find((region) => region.id === (hovered ?? sandbox.selectedRegionId));
-  const selectedEffect = selectedRegion ? effects.get(selectedRegion.id) : undefined;
+  const effectMap = useMemo(() => new Map(sandbox.simulationResult.organEffects.map((effect) => [effect.organ, effect])), [sandbox.simulationResult.organEffects]);
+  const selectedRegion = regionNodes.find((region) => region.regionId === (hovered ?? sandbox.selectedRegionId));
+  const selectedEffect = selectedRegion ? effectForNode(selectedRegion, effectMap) : undefined;
+  const selectedEdge = sandbox.simulationResult.molecularEdges.find((edge) => edge.id === sandbox.selectedMolecularEdgeId) ?? sandbox.simulationResult.molecularEdges[0];
   const transform = `translate(${viewBox.width / 2 + view.panX} ${viewBox.height / 2 + view.panY}) scale(${view.zoom}) translate(${-viewBox.width / 2} ${-viewBox.height / 2})`;
 
   const zoomBy = (delta: number) => setView((current) => ({ ...current, zoom: clamp(round(current.zoom + delta), 0.86, 2.7) }));
@@ -89,7 +122,7 @@ export function WholeBodyVisualization({ compact = false }: { compact?: boolean 
   };
 
   return (
-    <div className="body-stage glass relative flex h-full min-h-[520px] w-full select-none flex-col overflow-hidden rounded-lg border-cyan-300/20 bg-[#03101f]">
+    <div className="body-stage glass relative flex min-h-[560px] w-full select-none flex-col overflow-hidden rounded-lg border-cyan-300/20 bg-[#03101f]">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.17),transparent_48%)]" />
       <div className="relative z-20 flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-white/[0.06] bg-[#041426]/80 px-3 py-2 backdrop-blur-md">
         <div className="flex items-center gap-2">
@@ -100,16 +133,16 @@ export function WholeBodyVisualization({ compact = false }: { compact?: boolean 
           <AtlasButton label="Focus selected region" onClick={focusSelected} disabled={!selectedRegion}><Maximize2 className="h-3.5 w-3.5" /></AtlasButton>
         </div>
         <div className="flex items-center gap-2">
-          <ToggleChip active={showFlows} onClick={() => setShowFlows((value) => !value)} label="flows" />
+          <ToggleChip active={showFlows} onClick={() => setShowFlows((value) => !value)} label="molecules" />
           <ToggleChip active={showLabels} onClick={() => setShowLabels((value) => !value)} label="labels" />
         </div>
       </div>
-      <div className={`relative grid min-h-0 flex-1 gap-4 overflow-hidden ${compact ? "" : "lg:grid-cols-[1fr_0.58fr]"}`}>
+      <div className={`relative grid gap-4 overflow-hidden ${compact ? "" : "lg:grid-cols-[1fr_0.62fr]"}`}>
         <svg
           viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
-          className="relative z-10 h-full min-h-[470px] w-full cursor-grab touch-none drop-shadow-[0_30px_70px_rgba(34,211,238,0.18)] active:cursor-grabbing"
+          className="relative z-10 h-[560px] w-full cursor-grab touch-none drop-shadow-[0_30px_70px_rgba(34,211,238,0.18)] active:cursor-grabbing lg:h-[640px]"
           role="img"
-          aria-label="Translucent whole-body systems biology atlas"
+          aria-label="Detailed whole-body molecular systems biology atlas"
           preserveAspectRatio="xMidYMid meet"
           onPointerMove={pointerMove}
           onPointerLeave={() => {
@@ -118,7 +151,7 @@ export function WholeBodyVisualization({ compact = false }: { compact?: boolean 
           }}
           onPointerUp={() => setDrag(null)}
           onPointerDown={(event) => {
-            if ((event.target as Element).closest("[data-hotspot='true']")) return;
+            if ((event.target as Element).closest("[data-hotspot='true'],[data-edge='true']")) return;
             event.currentTarget.setPointerCapture(event.pointerId);
             setDrag({ x: event.clientX, y: event.clientY, panX: view.panX, panY: view.panY });
           }}
@@ -135,19 +168,21 @@ export function WholeBodyVisualization({ compact = false }: { compact?: boolean 
           <g transform={transform}>
             <ellipse cx="53" cy="96" rx="28" ry="84" fill={`url(#${uid}-core)`} opacity="0.7" />
             <g opacity="0.96">
-              <image href="/anatomogram-human.svg" x="0" y="0" width={viewBox.width} height={viewBox.height} opacity="0.86" preserveAspectRatio="xMidYMid meet" filter={`url(#${uid}-blurGlow)`} />
+              <VisibleAnatomyFallback />
+              <image href="/anatomogram-human.svg" x="0" y="0" width={viewBox.width} height={viewBox.height} opacity="0.5" preserveAspectRatio="xMidYMid meet" />
               <NeurovascularOverlay uid={uid} />
+              <MuscleFiberOverlay />
             </g>
-            {showFlows ? <NetworkEdges uid={uid} effects={effects} /> : null}
+            {showFlows ? <MolecularEdges edges={sandbox.simulationResult.molecularEdges} selectedEdgeId={selectedEdge?.id} onSelect={selectMolecularEdge} uid={uid} /> : null}
             <g>
-              {regions.map((region) => (
+              {regionNodes.map((region) => (
                 <AnatomyHotspot
-                  key={region.id}
+                  key={region.nodeId}
                   uid={uid}
                   region={region}
-                  effect={effects.get(region.id)}
-                  selected={sandbox.selectedRegionId === region.id}
-                  hovered={hovered === region.id}
+                  effect={effectForNode(region, effectMap)}
+                  selected={sandbox.selectedRegionId === region.regionId}
+                  hovered={hovered === region.regionId}
                   showLabel={showLabels}
                   onHover={setHovered}
                   onSelect={selectRegion}
@@ -159,23 +194,17 @@ export function WholeBodyVisualization({ compact = false }: { compact?: boolean 
         </svg>
         {!compact ? (
           <div className="relative z-10 space-y-3 self-center p-5 lg:pl-0">
-            <p className="text-xs uppercase tracking-[0.22em] text-cyan-200">BioBody atlas framework</p>
+            <p className="text-xs uppercase tracking-[0.22em] text-cyan-200">BioBody++ molecular atlas</p>
             <h2 className="text-2xl font-semibold text-white">{activePreset.shortTitle}</h2>
-            <p className="text-sm leading-6 text-slate-400">{activePreset.description}</p>
+            <p className="text-sm leading-6 text-slate-400">{sandbox.simulationResult.summary}</p>
             <div className="rounded-lg border border-slate-700/40 bg-slate-950/45 p-4">
-              <p className="text-sm font-semibold text-white">{selectedRegion ? bodyRegionLabels[selectedRegion.id] : "Body region"}</p>
+              <p className="text-sm font-semibold text-white">{selectedRegion ? bodyRegionLabels[selectedRegion.regionId] : "Body region"}</p>
               <p className="mt-2 text-sm leading-6 text-slate-400">{selectedEffect?.label ?? "Reference region in this scenario."}</p>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-800">
                 <div className="h-full rounded-full bg-cyan-300" style={{ width: `${selectedEffect?.magnitude ?? 12}%` }} />
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {sandbox.bodySystems.map((system) => (
-                <span key={system.id} className="rounded-full border border-violet-300/25 bg-violet-300/10 px-3 py-1 text-xs text-violet-100">
-                  {system.label}: {system.status}
-                </span>
-              ))}
-            </div>
+            <EdgeInspector edge={selectedEdge} />
           </div>
         ) : null}
       </div>
@@ -183,22 +212,33 @@ export function WholeBodyVisualization({ compact = false }: { compact?: boolean 
   );
 }
 
-function NetworkEdges({ effects, uid }: { effects: Map<BodyRegionId, OrganEffect>; uid: string }) {
+function VisibleAnatomyFallback() {
+  return (
+    <g opacity="0.72" fill="none" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M53 6c-8 0-13 6-13 14 0 7 5 12 13 12s13-5 13-12C66 12 61 6 53 6Z" fill="rgba(34,211,238,0.08)" stroke="rgba(125,240,255,0.5)" strokeWidth="0.45" />
+      <path d="M43 33c-7 4-12 12-13 24l-3 37M63 33c7 4 12 12 13 24l3 37" stroke="rgba(125,240,255,0.42)" strokeWidth="0.5" />
+      <path d="M39 35c-6 16-8 35-7 58 1 23 5 42 11 57M67 35c6 16 8 35 7 58-1 23-5 42-11 57" stroke="rgba(167,139,250,0.32)" strokeWidth="0.48" />
+      <path d="M41 61c7-4 17-4 24 0M39 88c8 5 20 5 28 0M43 124c6 4 14 4 20 0" stroke="rgba(34,211,238,0.26)" strokeWidth="0.32" />
+      <path d="M44 147l-5 39M62 147l5 39" stroke="rgba(125,240,255,0.42)" strokeWidth="0.5" />
+      <path d="M32 92l-9 34M74 92l9 34" stroke="rgba(125,240,255,0.38)" strokeWidth="0.44" />
+    </g>
+  );
+}
+
+function MolecularEdges({ edges, selectedEdgeId, onSelect, uid }: { edges: MolecularEdge[]; selectedEdgeId?: string; onSelect: (id: string) => void; uid: string }) {
   return (
     <g>
-      {flows.map(([sourceId, targetId, curve, speed]) => {
-        const source = regions.find((region) => region.id === sourceId);
-        const target = regions.find((region) => region.id === targetId);
+      {edges.map((edge) => {
+        const source = nodeForRegion(edge.sourceRegionId);
+        const target = nodeForRegion(edge.targetRegionId);
         if (!source || !target) return null;
-        const sourceEffect = effects.get(source.id);
-        const targetEffect = effects.get(target.id);
-        const active = Boolean(sourceEffect || targetEffect);
-        const color = active ? colorFor(targetEffect ?? sourceEffect) : "rgba(125,240,255,0.55)";
-        const path = curvedPath(source, target, curve);
+        const active = selectedEdgeId === edge.id;
+        const color = edgeColor(edge.edgeKind);
+        const path = curvedPath(source, target, edge.scenarioModifier * 18 || 8);
         return (
-          <g key={`${sourceId}-${targetId}`} opacity={active ? 0.78 : 0.18}>
-            <path d={path} fill="none" stroke={color} strokeWidth={active ? 0.5 : 0.22} strokeDasharray="1.8 2.2" strokeLinecap="round" vectorEffect="non-scaling-stroke" filter={active ? `url(#${uid}-blurGlow)` : undefined} />
-            <circle r={active ? 0.78 : 0.42} fill={color}><animateMotion dur={`${speed}s`} repeatCount="indefinite" path={path} /></circle>
+          <g key={edge.id} data-edge="true" role="button" tabIndex={0} style={{ cursor: "pointer" }} onClick={() => onSelect(edge.id)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onSelect(edge.id); }} opacity={active ? 0.96 : 0.55}>
+            <path d={path} fill="none" stroke={color} strokeWidth={active ? 0.8 : 0.42} strokeDasharray={edge.edgeKind === "transport" ? "1.8 2.2" : edge.edgeKind === "immune" ? "0.8 1.4" : undefined} strokeLinecap="round" vectorEffect="non-scaling-stroke" filter={`url(#${uid}-blurGlow)`} />
+            <circle r={active ? 0.95 : 0.56} fill={color}><animateMotion dur={`${clamp(7 - edge.baseFlux * 4, 2.8, 7)}s`} repeatCount="indefinite" path={path} /></circle>
           </g>
         );
       })}
@@ -206,15 +246,51 @@ function NetworkEdges({ effects, uid }: { effects: Map<BodyRegionId, OrganEffect
   );
 }
 
-function SelectedCallout({ region, effect }: { region: Region; effect?: OrganEffect }) {
+function EdgeInspector({ edge }: { edge?: MolecularEdge }) {
+  if (!edge) {
+    return <div className="rounded-lg border border-slate-700/40 bg-slate-950/45 p-4 text-sm text-slate-400">No active molecular edge in this scenario.</div>;
+  }
+  return (
+    <div className="rounded-lg border border-cyan-300/20 bg-cyan-300/[0.06] p-4">
+      <p className="text-xs uppercase tracking-[0.18em] text-cyan-200">Edge inspector</p>
+      <h3 className="mt-2 text-base font-semibold text-white">{edge.label}</h3>
+      <p className="mt-1 text-xs leading-5 text-slate-400">{edge.pathwayContext}</p>
+      <div className="mt-3 space-y-2">
+        {edge.payloads.map((payload) => (
+          <div key={`${edge.id}-${payload.molecule}`} className="rounded-md border border-white/10 bg-slate-950/50 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-sm font-semibold text-white">{payload.molecule}</span>
+              <div className="flex flex-wrap gap-1.5">
+                <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-emerald-100">{payload.moleculeClass.replace(/_/g, " ")}</span>
+                <span className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] ${provenanceClass(payload.provenance)}`}>{molecularProvenanceLabel(payload)}</span>
+              </div>
+            </div>
+            <p className="mt-2 text-xs leading-5 text-slate-300">{payload.ratio} · {payload.unit}</p>
+            <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-slate-500">{payload.ratioBasis.replace(/_/g, " ")}</p>
+            <p className="mt-1 text-[11px] leading-5 text-slate-500">{payload.sourceCompartment} {"->"} {payload.targetCompartment}</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {payload.sources.map((source) => (
+                <a key={`${payload.molecule}-${source.database}-${source.id}`} href={source.url} target="_blank" rel="noreferrer" className="rounded-full border border-slate-600/40 bg-slate-950/60 px-2 py-0.5 text-[10px] text-slate-300 hover:border-cyan-300/40 hover:text-cyan-100">
+                  {source.database}: {source.id}
+                </a>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SelectedCallout({ region, effect }: { region: RegionNode; effect?: OrganEffect }) {
   const color = colorFor(effect);
   return (
     <g pointerEvents="none">
       <path d={`M ${region.cx} ${region.cy} C ${region.cx + (region.calloutX >= region.cx ? 6 : -6)} ${region.cy - 5}, ${region.calloutX - 5} ${region.calloutY - 3}, ${region.calloutX} ${region.calloutY}`} fill="none" stroke={color} strokeWidth="0.42" strokeDasharray="1.4 1.8" opacity="0.88" vectorEffect="non-scaling-stroke" />
-      <rect x={region.calloutX} y={region.calloutY - 7} width="38" height="16" rx="2.8" fill="rgba(8,20,36,0.92)" stroke={color} strokeOpacity="0.58" vectorEffect="non-scaling-stroke" />
-      <text x={region.calloutX + 3} y={region.calloutY - 2.2} fill="hsl(213 45% 97%)" fontSize="3.1" fontWeight="700">{bodyRegionLabels[region.id]}</text>
+      <rect x={region.calloutX} y={region.calloutY - 7} width="39" height="16" rx="2.8" fill="rgba(8,20,36,0.92)" stroke={color} strokeOpacity="0.58" vectorEffect="non-scaling-stroke" />
+      <text x={region.calloutX + 3} y={region.calloutY - 2.2} fill="hsl(213 45% 97%)" fontSize="3.1" fontWeight="700">{bodyRegionLabels[region.regionId]}</text>
       <text x={region.calloutX + 3} y={region.calloutY + 2.7} fill="hsl(215 30% 72%)" fontSize="2.1">{effect?.label ?? "Reference region"}</text>
-      <text x={region.calloutX + 3} y={region.calloutY + 6.2} fill={color} fontSize="2.2" fontFamily="JetBrains Mono, monospace">pulse {(Math.max(0.08, (effect?.magnitude ?? 18) / 100) * 100).toFixed(0)}%</text>
+      <text x={region.calloutX + 3} y={region.calloutY + 6.2} fill={color} fontSize="2.2" fontFamily="JetBrains Mono, monospace">pressure {(Math.max(0.08, (effect?.magnitude ?? 18) / 100) * 100).toFixed(0)}%</text>
     </g>
   );
 }
@@ -232,28 +308,63 @@ function NeurovascularOverlay({ uid }: { uid: string }) {
     <g opacity="0.72">
       <path d="M53 29C49 43 48 57 49 72c0.5 14 2.4 29 4 45 1.6-16 3.5-31 4-45 1-15-0.8-29-4-43z" fill="none" stroke={`url(#${uid}-vessel)`} strokeWidth="0.38" />
       <path d="M53 47C43 58 39 70 38.5 89M53 47c10 11 14 23 14.5 42M53 83c-7 10-11 25-12 43M53 83c7 10 11 25 12 43M53 121c-5 13-7 29-8 50M53 121c5 13 7 29 8 50" fill="none" stroke="rgba(125,240,255,0.3)" strokeWidth="0.34" strokeLinecap="round" />
+      <path d="M37 75c7 4 12 8 16 15 4-7 9-11 16-15M35 98c9 5 15 11 18 20 3-9 9-15 18-20" fill="none" stroke="rgba(167,139,250,0.32)" strokeWidth="0.28" strokeDasharray="1 2" />
     </g>
   );
 }
 
-function AnatomyHotspot({ uid, region, effect, selected, hovered, showLabel, onHover, onSelect }: { uid: string; region: Region; effect?: OrganEffect; selected: boolean; hovered: boolean; showLabel: boolean; onHover: (id: BodyRegionId | null) => void; onSelect: (id: BodyRegionId) => void }) {
-  const active = Boolean(effect);
+function MuscleFiberOverlay() {
+  return (
+    <g opacity="0.26" stroke="hsl(152 70% 62%)" strokeWidth="0.22" strokeLinecap="round">
+      <path d="M26 58c-2 11-2 22 0 34M80 58c2 11 2 22 0 34M42 132c-3 13-3 29-1 45M64 132c3 13 3 29 1 45" />
+      <path d="M29 64c-1 9-1 18 1 27M77 64c1 9 1 18-1 27M45 138c-2 10-2 23-1 35M61 138c2 10 2 23 1 35" />
+    </g>
+  );
+}
+
+function AnatomyHotspot({ uid, region, effect, selected, hovered, showLabel, onHover, onSelect }: { uid: string; region: RegionNode; effect?: OrganEffect; selected: boolean; hovered: boolean; showLabel: boolean; onHover: (id: BodyRegionId | null) => void; onSelect: (id: BodyRegionId) => void }) {
+  const active = Boolean(effect && effect.magnitude > 22);
   const color = colorFor(effect);
   const intensity = Math.max(0.12, (effect?.magnitude ?? 12) / 100);
   const radius = region.r + (selected ? 0.55 : hovered ? 0.32 : 0);
   const showText = showLabel || selected || hovered;
   return (
-    <g data-hotspot="true" role="button" tabIndex={0} style={{ cursor: "pointer" }} onMouseEnter={() => onHover(region.id)} onMouseLeave={() => onHover(null)} onClick={() => onSelect(region.id)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onSelect(region.id); }} aria-label={`Select ${bodyRegionLabels[region.id]}`}>
+    <g data-hotspot="true" role="button" tabIndex={0} style={{ cursor: "pointer" }} onMouseEnter={() => onHover(region.regionId)} onMouseLeave={() => onHover(null)} onClick={() => onSelect(region.regionId)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onSelect(region.regionId); }} aria-label={`Select ${bodyRegionLabels[region.regionId]}`}>
       <ellipse cx={region.cx} cy={region.cy} rx={region.haloX} ry={region.haloY} fill={color} opacity={active ? 0.1 + intensity * 0.2 : selected || hovered ? 0.08 : 0.02} filter={`url(#${uid}-hotspotGlow)`} className={active ? "animate-pulse-soft" : undefined} />
       <circle cx={region.cx} cy={region.cy} r={region.hitR} fill="transparent" />
       <circle cx={region.cx} cy={region.cy} r={radius} fill="rgba(8,20,36,0.8)" stroke={color} strokeWidth={selected ? 0.58 : hovered || active ? 0.36 : 0.22} strokeOpacity={selected || hovered || active ? 0.95 : 0.48} vectorEffect="non-scaling-stroke" />
       <circle cx={region.cx} cy={region.cy} r={Math.max(0.72, radius - 1.4)} fill={color} fillOpacity={active ? 0.24 + intensity * 0.46 : 0.12} className={active ? "animate-pulse-glow" : undefined} />
-      {showText ? <text x={region.labelX} y={region.labelY} textAnchor={region.anchor} fill="hsl(213 45% 97%)" fontSize="2.8" fontWeight="700" letterSpacing="0.08em" paintOrder="stroke" stroke="rgba(8,20,36,0.9)" strokeWidth="1.1">{bodyRegionLabels[region.id].toUpperCase()}</text> : null}
+      {showText ? <text x={region.labelX} y={region.labelY} textAnchor={region.anchor} fill="hsl(213 45% 97%)" fontSize="2.7" fontWeight="700" letterSpacing="0.08em" paintOrder="stroke" stroke="rgba(8,20,36,0.9)" strokeWidth="1.1">{bodyRegionLabels[region.regionId].toUpperCase()}</text> : null}
     </g>
   );
 }
 
-function curvedPath(source: Region, target: Region, curve: number) {
+function effectForNode(region: RegionNode, effects: Map<BodyRegionId, OrganEffect>) {
+  return effects.get(region.regionId) ?? (region.cluster === "immune" ? effects.get("immune") : undefined);
+}
+
+function nodeForRegion(regionId: BodyRegionId) {
+  if (regionId === "immune") return regionNodes.find((region) => region.nodeId === "bone-marrow");
+  if (regionId === "gut") return regionNodes.find((region) => region.regionId === "intestine");
+  if (regionId === "muscle") return regionNodes.find((region) => region.nodeId === "muscle-left-leg");
+  return regionNodes.find((region) => region.regionId === regionId);
+}
+
+function edgeColor(kind: MolecularEdge["edgeKind"]) {
+  if (kind === "immune") return "hsl(36 100% 68%)";
+  if (kind === "neural" || kind === "modulation") return "hsl(268 90% 74%)";
+  if (kind === "endocrine") return "hsl(152 70% 62%)";
+  if (kind === "gene_delivery") return "hsl(202 100% 70%)";
+  return "hsl(188 100% 74%)";
+}
+
+function provenanceClass(provenance: MolecularEdge["payloads"][number]["provenance"]) {
+  if (provenance === "database_exact") return "border-cyan-300/35 bg-cyan-300/10 text-cyan-100";
+  if (provenance === "source_backed") return "border-violet-300/35 bg-violet-300/10 text-violet-100";
+  return "border-amber-300/35 bg-amber-300/10 text-amber-100";
+}
+
+function curvedPath(source: RegionNode, target: RegionNode, curve: number) {
   const midX = (source.cx + target.cx) / 2;
   const midY = (source.cy + target.cy) / 2;
   const dx = target.cx - source.cx;

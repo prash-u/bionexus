@@ -4,7 +4,7 @@ import { bodyRegionLabels } from "@/data/scenarios/presets";
 import { useSandbox } from "@/lib/sandbox/sandboxState";
 
 export function BodyAtlasPage() {
-  const { activePreset } = useSandbox();
+  const { sandbox } = useSandbox();
   return (
     <div className="space-y-6">
       <GlassCard>
@@ -14,7 +14,7 @@ export function BodyAtlasPage() {
       </GlassCard>
       <WholeBodyVisualization />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {activePreset.organEffects.map((effect) => (
+        {sandbox.simulationResult.organEffects.map((effect) => (
           <GlassCard key={effect.organ}>
             <p className="text-sm uppercase tracking-[0.16em] text-slate-500">{bodyRegionLabels[effect.organ]}</p>
             <h2 className="mt-2 text-lg font-semibold text-white">{effect.label}</h2>

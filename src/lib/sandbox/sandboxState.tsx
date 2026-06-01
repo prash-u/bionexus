@@ -6,7 +6,13 @@ import type {
   BiologicalLayer,
   BodyRegionId,
   BodySystemState,
+  MolecularEdge,
+  MolecularImportSnapshot,
+  NetworkPulseImport,
+  NeuralCircuitPresetId,
+  NeuralStimulationSettings,
   ModuleOutput,
+  ParameterControlId,
   Perturbation,
   Predisposition,
   SandboxState,
@@ -14,20 +20,14 @@ import type {
   ScenarioIntervention,
   ScenarioPreset
 } from "@/lib/ontology/types";
+import { fetchReactomeReactionEdge, MolecularImportError, type FetchReactomeReactionEdgeInput } from "@/lib/molecular/liveImport";
+import { applyNeuralPreset, buildNeuralCircuitState, createNeuralCircuitState, neuralStateToBodyPatch, updateNeuralStimulationState } from "@/lib/neural/neuralEngine";
+import { createNetworkPulseImport, type NetworkPulseCsvInput } from "@/lib/network/networkPulseImport";
+import { buildSandboxSimulationResult, defaultParameters } from "@/lib/sandbox/simulation";
 
-const storageKey = "bionexus:sandbox-state:v1.1";
+const storageKey = "bionexus:sandbox-state:v1.5";
 
 const now = () => new Date().toISOString();
-
-const systemStatesFromPreset = (preset: ScenarioPreset): BodySystemState[] =>
-  preset.systemEffects.map((effect, index) => ({
-    id: `${preset.id}-system-${index}`,
-    label: effect.system,
-    status: effect.status === "stable" ? "stable" : effect.status === "modulated" ? "modulated" : effect.status === "suppressed" ? "watch" : "stressed",
-    intensity: effect.magnitude,
-    bodyRegionIds: preset.affectedRegions,
-    summary: effect.label
-  }));
 
 const scenarioFromPreset = (preset: ScenarioPreset): Scenario => ({
   id: `scenario-${preset.id}`,
@@ -43,24 +43,97 @@ const scenarioFromPreset = (preset: ScenarioPreset): Scenario => ({
 
 const moduleOutputs = (preset: ScenarioPreset): ModuleOutput[] => [
   { moduleId: "body-sandbox", title: "Body sandbox state", summary: `${preset.shortTitle} active across ${preset.affectedSystems.join(", ")}.`, includedInReport: true },
+  { moduleId: "body-atlas", title: "Whole-body atlas", summary: "Detailed organ, tissue and molecular edge map contributes selected body-state context.", includedInReport: true },
   { moduleId: "knowledge-graph", title: "Pathway context", summary: `Active pathways: ${preset.keyPathways.join(", ")}.`, includedInReport: true },
+  { moduleId: "interventions", title: "Perturbation library", summary: "Selected interventions are treated as exploratory modulators of scenario biology.", includedInReport: true },
   { moduleId: "neural-circuit", title: "Neural module", summary: preset.category === "neural" ? "Motor circuit module contributes DBS/modulation context." : "Neural module available as optional context.", includedInReport: preset.category === "neural" }
 ];
 
-const defaultState = (): SandboxState => {
-  const preset = scenarioPresets[0];
+const systemStatesFromResult = (preset: ScenarioPreset, result: SandboxState["simulationResult"]): BodySystemState[] =>
+  result.systemEffects.map((effect, index) => ({
+    id: `${preset.id}-system-${index}`,
+    label: effect.system,
+    status: effect.status === "stable" ? "stable" : effect.status === "modulated" ? "modulated" : effect.status === "suppressed" ? "watch" : "stressed",
+    intensity: effect.magnitude,
+    bodyRegionIds: preset.affectedRegions,
+    summary: effect.label
+  }));
+
+const recalculate = (state: SandboxState, preset: ScenarioPreset): SandboxState => {
+  const simulationResult = buildSandboxSimulationResult({
+    preset,
+    parameters: state.parameters,
+    selectedRegionId: state.selectedRegionId,
+    predispositions: state.scenario.predispositions,
+    perturbations: state.scenario.perturbations,
+    interventions: state.scenario.interventions,
+    pathwayTuning: state.pathwayTuning,
+    importedMolecularEdges: state.importedMolecularEdges,
+    activeNetworkPulseImport: state.networkPulseImports.find((imported) => imported.id === state.activeNetworkPulseImportId)
+  });
+
   return {
-    version: "1.1",
+    ...state,
+    simulationResult,
+    bodySystems: systemStatesFromResult(preset, simulationResult),
+    moduleOutputs: state.moduleOutputs.map((output) => {
+      if (output.moduleId === "body-sandbox") return { ...output, summary: simulationResult.summary };
+      if (output.moduleId === "knowledge-graph") return { ...output, summary: `Active pathway deltas: ${Object.keys(simulationResult.pathwayDeltas).join(", ")}. Network imports: ${state.networkPulseImports.length}.` };
+      if (output.moduleId === "body-atlas") return { ...output, summary: `${simulationResult.organEffects.length} computed organ/tissue effects and ${simulationResult.molecularEdges.length} molecular edges.` };
+      if (output.moduleId === "interventions") return { ...output, summary: `${state.scenario.interventions.length} selected exploratory modulators.` };
+      if (output.moduleId === "neural-circuit") {
+        return {
+          ...output,
+          summary: state.neuralCircuitState.sentToBodyAt
+            ? `${state.neuralCircuitState.summary} Sent to Body Sandbox.`
+            : state.neuralCircuitState.summary
+        };
+      }
+      return output;
+    })
+  };
+};
+
+const stateForPreset = (preset: ScenarioPreset): SandboxState => {
+  const selectedRegionId = preset.affectedRegions[0];
+  const base: SandboxState = {
+    version: "1.5",
     activeScenarioId: preset.id,
     scenario: scenarioFromPreset(preset),
     presets: scenarioPresets,
-    bodySystems: systemStatesFromPreset(preset),
+    bodySystems: [],
     activeLayers: biologicalLayers,
-    selectedRegionId: preset.affectedRegions[0],
+    selectedRegionId,
+    selectedMolecularEdgeId: undefined,
+    focus: { kind: "region", id: selectedRegionId },
+    parameters: { ...defaultParameters },
+    pathwayTuning: {},
+    importedMolecularEdges: [],
+    molecularImportSnapshots: [],
+    molecularImportError: undefined,
+    networkPulseImports: [],
+    activeNetworkPulseImportId: undefined,
+    networkPulseImportError: undefined,
+    neuralCircuitState: createNeuralCircuitState(preset.category === "neural" ? "parkinsonian" : "generic-motor"),
+    simulationResult: {
+      id: "pending",
+      summary: "",
+      observables: [],
+      organEffects: [],
+      systemEffects: [],
+      phenotypeEffects: [],
+      pathwayDeltas: {},
+      molecularEdges: [],
+      backtraceCandidates: [],
+      generatedAt: now()
+    },
     moduleOutputs: moduleOutputs(preset),
     updatedAt: now()
   };
+  return recalculate(base, preset);
 };
+
+const defaultState = (): SandboxState => stateForPreset(scenarioPresets[0]);
 
 const readState = () => {
   if (typeof window === "undefined") return defaultState();
@@ -68,8 +141,9 @@ const readState = () => {
   if (!raw) return defaultState();
   try {
     const parsed = JSON.parse(raw) as SandboxState;
-    if (parsed.version !== "1.1" || !parsed.scenario) return defaultState();
-    return { ...parsed, presets: scenarioPresets };
+    if (parsed.version !== "1.5" || !parsed.scenario || !parsed.parameters || !parsed.neuralCircuitState) return defaultState();
+    const preset = scenarioPresets.find((item) => item.id === parsed.activeScenarioId) ?? scenarioPresets[0];
+    return recalculate({ ...parsed, presets: scenarioPresets }, preset);
   } catch {
     return defaultState();
   }
@@ -85,6 +159,25 @@ interface SandboxContextValue {
   togglePredisposition: (predisposition: Predisposition) => void;
   togglePerturbation: (perturbation: Perturbation) => void;
   toggleIntervention: (intervention: ScenarioIntervention) => void;
+  setParameter: (id: ParameterControlId, value: number) => void;
+  setParameters: (patch: Partial<Record<ParameterControlId, number>>) => void;
+  setPathwayTuning: (pathway: string, value: number) => void;
+  setPathwayTuningPatch: (patch: Record<string, number>) => void;
+  applySandboxTuning: (patch: {
+    parameters?: Partial<Record<ParameterControlId, number>>;
+    pathwayTuning?: Record<string, number>;
+  }) => void;
+  selectMolecularEdge: (id: string) => void;
+  importReactomeEdge: (input: Omit<FetchReactomeReactionEdgeInput, "scenarioId" | "fetcher">) => Promise<void>;
+  removeImportedMolecularEdge: (id: MolecularEdge["id"]) => void;
+  clearMolecularImportError: () => void;
+  importNetworkPulseCsv: (input: Omit<NetworkPulseCsvInput, "scenarioId">) => void;
+  selectNetworkPulseImport: (id: NetworkPulseImport["id"]) => void;
+  removeNetworkPulseImport: (id: NetworkPulseImport["id"]) => void;
+  clearNetworkPulseImportError: () => void;
+  applyNeuralCircuitPreset: (id: NeuralCircuitPresetId) => void;
+  updateNeuralStimulation: (patch: Partial<NeuralStimulationSettings>) => void;
+  sendNeuralStateToBodySandbox: () => void;
   setModuleIncluded: (moduleId: ModuleOutput["moduleId"], includedInReport: boolean) => void;
   resetSandbox: () => void;
 }
@@ -94,9 +187,9 @@ const SandboxContext = createContext<SandboxContextValue | null>(null);
 export function SandboxProvider({ children }: { children: ReactNode }) {
   const [sandbox, setSandbox] = useState(readState);
 
-  const persist = (next: SandboxState) => {
-    const stamped = { ...next, updatedAt: now(), presets: scenarioPresets };
-    window.localStorage.setItem(storageKey, JSON.stringify(stamped));
+  const persist = (next: SandboxState, preset = scenarioPresets.find((item) => item.id === next.activeScenarioId) ?? scenarioPresets[0]) => {
+    const stamped = recalculate({ ...next, updatedAt: now(), presets: scenarioPresets }, preset);
+    if (typeof window !== "undefined") window.localStorage.setItem(storageKey, JSON.stringify(stamped));
     setSandbox(stamped);
   };
 
@@ -108,14 +201,7 @@ export function SandboxProvider({ children }: { children: ReactNode }) {
       activePreset,
       selectPreset(id) {
         const preset = scenarioPresets.find((item) => item.id === id) ?? scenarioPresets[0];
-        persist({
-          ...sandbox,
-          activeScenarioId: preset.id,
-          scenario: scenarioFromPreset(preset),
-          bodySystems: systemStatesFromPreset(preset),
-          selectedRegionId: preset.affectedRegions[0],
-          moduleOutputs: moduleOutputs(preset)
-        });
+        persist(stateForPreset(preset), preset);
       },
       toggleLayer(layer) {
         const activeLayers = sandbox.activeLayers.includes(layer)
@@ -124,7 +210,7 @@ export function SandboxProvider({ children }: { children: ReactNode }) {
         persist({ ...sandbox, activeLayers, scenario: { ...sandbox.scenario, activeLayers } });
       },
       selectRegion(id) {
-        persist({ ...sandbox, selectedRegionId: id });
+        persist({ ...sandbox, selectedRegionId: id, focus: { kind: "region", id } });
       },
       setBaseline(baselineProfile) {
         persist({ ...sandbox, scenario: { ...sandbox.scenario, baselineProfile } });
@@ -165,6 +251,139 @@ export function SandboxProvider({ children }: { children: ReactNode }) {
           }
         });
       },
+      setParameter(id, value) {
+        persist({ ...sandbox, parameters: { ...sandbox.parameters, [id]: Math.min(1, Math.max(0, value)) } });
+      },
+      setParameters(patch) {
+        const parameters = { ...sandbox.parameters };
+        Object.entries(patch).forEach(([id, value]) => {
+          if (typeof value === "number") parameters[id as ParameterControlId] = Math.min(1, Math.max(0, value));
+        });
+        persist({ ...sandbox, parameters });
+      },
+      setPathwayTuning(pathway, value) {
+        persist({ ...sandbox, pathwayTuning: { ...sandbox.pathwayTuning, [pathway]: Math.min(1, Math.max(-1, value)) }, focus: { kind: "pathway", id: pathway } });
+      },
+      setPathwayTuningPatch(patch) {
+        const pathwayTuning = { ...sandbox.pathwayTuning };
+        Object.entries(patch).forEach(([pathway, value]) => {
+          pathwayTuning[pathway] = Math.min(1, Math.max(-1, value));
+        });
+        const firstPathway = Object.keys(patch)[0];
+        persist({
+          ...sandbox,
+          pathwayTuning,
+          focus: firstPathway ? { kind: "pathway", id: firstPathway } : sandbox.focus
+        });
+      },
+      applySandboxTuning(patch) {
+        const parameters = { ...sandbox.parameters };
+        Object.entries(patch.parameters ?? {}).forEach(([id, value]) => {
+          if (typeof value === "number") parameters[id as ParameterControlId] = Math.min(1, Math.max(0, value));
+        });
+        const pathwayTuning = { ...sandbox.pathwayTuning };
+        Object.entries(patch.pathwayTuning ?? {}).forEach(([pathway, value]) => {
+          pathwayTuning[pathway] = Math.min(1, Math.max(-1, value));
+        });
+        const firstPathway = Object.keys(patch.pathwayTuning ?? {})[0];
+        persist({
+          ...sandbox,
+          parameters,
+          pathwayTuning,
+          focus: firstPathway ? { kind: "pathway", id: firstPathway } : sandbox.focus
+        });
+      },
+      selectMolecularEdge(id) {
+        persist({ ...sandbox, selectedMolecularEdgeId: id, focus: { kind: "molecularEdge", id } });
+      },
+      async importReactomeEdge(input) {
+        persist({ ...sandbox, molecularImportError: undefined });
+        try {
+          const { edge, snapshot } = await fetchReactomeReactionEdge({
+            ...input,
+            scenarioId: sandbox.activeScenarioId
+          });
+          persist({
+            ...sandbox,
+            importedMolecularEdges: upsertEdge(sandbox.importedMolecularEdges, edge),
+            molecularImportSnapshots: upsertSnapshot(sandbox.molecularImportSnapshots, snapshot),
+            molecularImportError: undefined,
+            selectedMolecularEdgeId: edge.id,
+            focus: { kind: "molecularEdge", id: edge.id }
+          });
+        } catch (error) {
+          const snapshot = error instanceof MolecularImportError ? error.snapshot : undefined;
+          persist({
+            ...sandbox,
+            molecularImportError: error instanceof Error ? error.message : "Reactome import failed.",
+            molecularImportSnapshots: snapshot ? upsertSnapshot(sandbox.molecularImportSnapshots, snapshot) : sandbox.molecularImportSnapshots
+          });
+        }
+      },
+      removeImportedMolecularEdge(id) {
+        persist({
+          ...sandbox,
+          importedMolecularEdges: sandbox.importedMolecularEdges.filter((edge) => edge.id !== id),
+          selectedMolecularEdgeId: sandbox.selectedMolecularEdgeId === id ? undefined : sandbox.selectedMolecularEdgeId,
+          focus: sandbox.focus.kind === "molecularEdge" && sandbox.focus.id === id ? { kind: "region", id: sandbox.selectedRegionId } : sandbox.focus
+        });
+      },
+      clearMolecularImportError() {
+        persist({ ...sandbox, molecularImportError: undefined });
+      },
+      importNetworkPulseCsv(input) {
+        try {
+          const imported = createNetworkPulseImport({ ...input, scenarioId: sandbox.activeScenarioId });
+          persist({
+            ...sandbox,
+            networkPulseImports: upsertNetworkImport(sandbox.networkPulseImports, imported),
+            activeNetworkPulseImportId: imported.id,
+            networkPulseImportError: undefined
+          });
+        } catch (error) {
+          persist({ ...sandbox, networkPulseImportError: error instanceof Error ? error.message : "Network Pulse import failed." });
+        }
+      },
+      selectNetworkPulseImport(id) {
+        persist({ ...sandbox, activeNetworkPulseImportId: id, networkPulseImportError: undefined });
+      },
+      removeNetworkPulseImport(id) {
+        const nextImports = sandbox.networkPulseImports.filter((item) => item.id !== id);
+        persist({
+          ...sandbox,
+          networkPulseImports: nextImports,
+          activeNetworkPulseImportId: sandbox.activeNetworkPulseImportId === id ? nextImports.find((item) => item.scenarioId === sandbox.activeScenarioId)?.id : sandbox.activeNetworkPulseImportId
+        });
+      },
+      clearNetworkPulseImportError() {
+        persist({ ...sandbox, networkPulseImportError: undefined });
+      },
+      applyNeuralCircuitPreset(id) {
+        persist({ ...sandbox, neuralCircuitState: applyNeuralPreset(id) });
+      },
+      updateNeuralStimulation(patch) {
+        persist({ ...sandbox, neuralCircuitState: updateNeuralStimulationState(sandbox.neuralCircuitState, patch) });
+      },
+      sendNeuralStateToBodySandbox() {
+        const bodyPatch = neuralStateToBodyPatch(sandbox.neuralCircuitState);
+        const nextNeuralState = buildNeuralCircuitState(
+          sandbox.neuralCircuitState.presetId,
+          sandbox.neuralCircuitState.stimulation,
+          now()
+        );
+        persist({
+          ...sandbox,
+          selectedRegionId: "brain",
+          focus: { kind: "region", id: "brain" },
+          parameters: { ...sandbox.parameters, ...bodyPatch.parameters },
+          neuralCircuitState: nextNeuralState,
+          moduleOutputs: sandbox.moduleOutputs.map((output) =>
+            output.moduleId === "neural-circuit"
+              ? { ...output, includedInReport: true, summary: `${nextNeuralState.summary} ${bodyPatch.summary}` }
+              : output
+          )
+        });
+      },
       setModuleIncluded(moduleId, includedInReport) {
         persist({
           ...sandbox,
@@ -175,7 +394,7 @@ export function SandboxProvider({ children }: { children: ReactNode }) {
       },
       resetSandbox() {
         const next = defaultState();
-        window.localStorage.setItem(storageKey, JSON.stringify(next));
+        if (typeof window !== "undefined") window.localStorage.setItem(storageKey, JSON.stringify(next));
         setSandbox(next);
       }
     };
@@ -188,4 +407,16 @@ export function useSandbox() {
   const value = useContext(SandboxContext);
   if (!value) throw new Error("useSandbox must be used inside SandboxProvider");
   return value;
+}
+
+function upsertEdge(edges: MolecularEdge[], edge: MolecularEdge) {
+  return [...edges.filter((item) => item.id !== edge.id), edge];
+}
+
+function upsertSnapshot(snapshots: MolecularImportSnapshot[], snapshot: MolecularImportSnapshot) {
+  return [snapshot, ...snapshots.filter((item) => item.id !== snapshot.id)].slice(0, 8);
+}
+
+function upsertNetworkImport(imports: NetworkPulseImport[], imported: NetworkPulseImport) {
+  return [imported, ...imports.filter((item) => item.id !== imported.id)].slice(0, 8);
 }

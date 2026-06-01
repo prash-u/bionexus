@@ -25,13 +25,20 @@ export const biologicalLayers: BiologicalLayer[] = [
 export const bodyRegionLabels: Record<BodyRegionId, string> = {
   brain: "Brain / CNS",
   eye: "Eye / Retina",
+  thyroid: "Thyroid",
   heart: "Heart",
   lungs: "Lungs",
   liver: "Liver",
+  stomach: "Stomach",
   pancreas: "Pancreas",
+  intestine: "Intestine",
   gut: "Gut",
+  spleen: "Spleen",
+  adipose: "Adipose",
   kidney: "Kidney",
   muscle: "Skeletal Muscle",
+  boneMarrow: "Bone Marrow",
+  skin: "Skin",
   immune: "Immune / Blood",
   peripheralNerves: "Peripheral Nerves"
 };
@@ -44,7 +51,7 @@ export const scenarioPresets: ScenarioPreset[] = [
     category: "neural",
     description: "A neural systems scenario for exploring dopaminergic pathway stress, basal ganglia circuitry, motor phenotype emergence and exploratory modulation.",
     affectedSystems: ["Central nervous system", "Motor control", "Peripheral movement"],
-    affectedRegions: ["brain", "peripheralNerves", "muscle"],
+    affectedRegions: ["brain", "peripheralNerves", "muscle", "boneMarrow"],
     keyGenes: ["SNCA", "LRRK2", "GBA1", "PINK1"],
     keyPathways: ["Dopaminergic signalling", "Proteostasis", "Mitophagy", "Basal ganglia loop"],
     baselineProfile: { id: "baseline-neural", label: "Adult neural reference", description: "Reference motor-circuit sandbox baseline.", assumptions },
@@ -82,7 +89,7 @@ export const scenarioPresets: ScenarioPreset[] = [
     category: "metabolic",
     description: "A body-scale glucose regulation scenario spanning insulin signalling, pancreas, liver, muscle, gut and adipose-like storage logic.",
     affectedSystems: ["Endocrine metabolism", "Liver metabolism", "Skeletal muscle uptake"],
-    affectedRegions: ["pancreas", "liver", "muscle", "gut", "kidney", "heart"],
+    affectedRegions: ["pancreas", "liver", "muscle", "intestine", "adipose", "kidney", "heart"],
     keyGenes: ["INSR", "IRS1", "SLC2A4", "PPARG"],
     keyPathways: ["Insulin signalling", "Glucose uptake", "Hepatic gluconeogenesis", "Inflammatory-metabolic crosstalk"],
     baselineProfile: { id: "baseline-metabolic", label: "Adult metabolic reference", description: "Reference glucose-regulation sandbox baseline.", assumptions },
@@ -101,7 +108,8 @@ export const scenarioPresets: ScenarioPreset[] = [
       { organ: "pancreas", label: "Insulin demand pressure", direction: "stress", magnitude: 74, ...trace("scenario-metabolic", "Metabolic dysfunction preset") },
       { organ: "liver", label: "Hepatic glucose output", direction: "activation", magnitude: 70, ...trace("scenario-metabolic", "Metabolic dysfunction preset") },
       { organ: "muscle", label: "Glucose uptake resistance", direction: "suppression", magnitude: 62, ...trace("scenario-metabolic", "Metabolic dysfunction preset") },
-      { organ: "gut", label: "Nutrient input modifier", direction: "activation", magnitude: 44, ...trace("scenario-metabolic", "Metabolic dysfunction preset") }
+      { organ: "intestine", label: "Nutrient input modifier", direction: "activation", magnitude: 44, ...trace("scenario-metabolic", "Metabolic dysfunction preset") },
+      { organ: "adipose", label: "Adipose-metabolic signalling", direction: "activation", magnitude: 52, ...trace("scenario-metabolic", "Metabolic dysfunction preset") }
     ],
     systemEffects: [
       { system: "Metabolic regulation", label: "Glucose handling stress", status: "stressed", magnitude: 76, ...trace("scenario-metabolic", "Metabolic dysfunction preset") }
@@ -151,7 +159,7 @@ export const scenarioPresets: ScenarioPreset[] = [
     category: "immune",
     description: "A whole-body immune activation scenario for exploring cytokine signalling, tissue inflammation and systemic phenotype consequences.",
     affectedSystems: ["Immune system", "Vascular signalling", "Tissue stress"],
-    affectedRegions: ["immune", "lungs", "gut", "liver", "kidney", "heart"],
+    affectedRegions: ["immune", "boneMarrow", "spleen", "lungs", "intestine", "skin", "liver", "kidney", "heart"],
     keyGenes: ["IL6", "TNF", "NFKB1", "CXCL8"],
     keyPathways: ["Cytokine signalling", "NF-kB activation", "Innate immune response", "Tissue repair"],
     baselineProfile: { id: "baseline-immune", label: "Immune reference", description: "Reference inflammatory signalling sandbox baseline.", assumptions },
@@ -169,7 +177,10 @@ export const scenarioPresets: ScenarioPreset[] = [
     organEffects: [
       { organ: "immune", label: "Immune activation", direction: "activation", magnitude: 88, ...trace("scenario-immune", "Inflammatory activation preset") },
       { organ: "lungs", label: "Barrier tissue inflammation", direction: "stress", magnitude: 48, ...trace("scenario-immune", "Inflammatory activation preset") },
-      { organ: "gut", label: "Mucosal immune crosstalk", direction: "activation", magnitude: 52, ...trace("scenario-immune", "Inflammatory activation preset") },
+      { organ: "intestine", label: "Mucosal immune crosstalk", direction: "activation", magnitude: 52, ...trace("scenario-immune", "Inflammatory activation preset") },
+      { organ: "spleen", label: "Immune relay activation", direction: "activation", magnitude: 58, ...trace("scenario-immune", "Inflammatory activation preset") },
+      { organ: "boneMarrow", label: "Hematopoietic immune pressure", direction: "activation", magnitude: 54, ...trace("scenario-immune", "Inflammatory activation preset") },
+      { organ: "skin", label: "Barrier tissue context", direction: "stress", magnitude: 34, ...trace("scenario-immune", "Inflammatory activation preset") },
       { organ: "liver", label: "Acute-phase signalling context", direction: "activation", magnitude: 56, ...trace("scenario-immune", "Inflammatory activation preset") }
     ],
     systemEffects: [

@@ -16,9 +16,13 @@ BioNexus now supports scenario presets, baseline assumptions, predispositions, p
 
 Map network analysis concepts into pathway signals, relationship confidence, evidence items and upstream/downstream scenario links.
 
+Status: first local bridge implemented in v1.4. BioNexus can ingest compact Network Pulse-style gene, edge and pathway CSV tables into `SandboxState`, enrich backtracing, drive the scenario graph and include the import in reports.
+
 ## Phase 3: Import Neural Pulse Play Concepts
 
 Bring neural circuit simulation concepts into the Neural Circuit module and connect them back to Body Sandbox.
+
+Status: first local bridge implemented in v1.5. BioNexus now has a Neural Pulse Play-style motor-circuit module with DBS/stimulation presets, editable pulse parameters, tremor/synchrony/overload/suppression metrics and a send-to-Body-Sandbox action that updates body-scale neural synchrony and exploratory oxidative load.
 
 ## Phase 4: Connect Live Vision Hand Pose/Tremor Input
 

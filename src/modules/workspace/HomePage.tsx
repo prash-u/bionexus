@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { SafetyNotice } from "@/components/safety/SafetyNotice";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { ModuleCard } from "@/components/workspace/ModuleCard";
+import { abstractionLayers, entityTypeLabels } from "@/data/ontology/entityTypes";
 import { scenarioPresets } from "@/data/scenarios/presets";
 import { useWorkspace } from "@/lib/workspace/workspaceState";
 import { useSandbox } from "@/lib/sandbox/sandboxState";
@@ -43,6 +44,30 @@ export function HomePage() {
         </GlassCard>
       </section>
       <SafetyNotice />
+      <GlassCard>
+        <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            <p className="text-sm uppercase tracking-[0.2em] text-violet-200">Start from whatever data you have</p>
+            <h2 className="mt-2 text-2xl font-semibold text-white">Build a sandbox experience across the hierarchy</h2>
+            <p className="mt-3 text-sm leading-6 text-slate-400">
+              Pick the layer your example lives in, then BioNexus should extrapolate upstream toward genes and proteins and downstream toward tissues, phenotypes, scenarios and interventions.
+            </p>
+            <Link to="/body-sandbox" className="nexus-button mt-5">Fit an example now</Link>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+            {abstractionLayers.map((layer, index) => (
+              <Link
+                key={layer}
+                to="/body-sandbox"
+                className="rounded-lg border border-slate-700/40 bg-slate-950/35 p-3 transition hover:border-cyan-300/45 hover:bg-cyan-300/[0.06]"
+              >
+                <span className="text-[10px] uppercase tracking-[0.16em] text-cyan-200">{String(index + 1).padStart(2, "0")}</span>
+                <span className="mt-2 block text-sm font-semibold text-white">{entityTypeLabels[layer]}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </GlassCard>
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <ModuleCard to="/body-sandbox" title="Build a scenario" icon={ScanHeart} description="Choose a preset, baseline, predispositions, perturbations and interventions." />
         <ModuleCard to="/body-atlas" title="Explore the body" icon={UserRoundSearch} description="Inspect affected organs and systems through a clickable whole-body consequence map." />

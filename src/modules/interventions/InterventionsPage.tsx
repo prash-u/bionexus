@@ -1,9 +1,12 @@
 import { GlassCard } from "@/components/ui/GlassCard";
 import { scenarioPresets } from "@/data/scenarios/presets";
+import { useSandbox } from "@/lib/sandbox/sandboxState";
 
 const categories = ["Drug", "DBS / stimulation", "Gene therapy", "CRISPR / genetic engineering", "Exercise", "Diet", "Sleep", "Prosthetic / neural interface", "Environmental modifier", "Experimental"];
 
 export function InterventionsPage() {
+  const { sandbox, toggleIntervention } = useSandbox();
+  const activeIds = new Set(sandbox.scenario.interventions.map((item) => item.id));
   const interventions = scenarioPresets.flatMap((preset) => preset.interventions.map((intervention) => ({ ...intervention, preset: preset.shortTitle })));
   return (
     <div className="space-y-6">
@@ -20,13 +23,16 @@ export function InterventionsPage() {
       </GlassCard>
       <div className="grid gap-4 md:grid-cols-2">
         {interventions.map((entity) => (
-          <GlassCard key={entity.id}>
+          <GlassCard key={`${entity.preset}-${entity.id}`} className={activeIds.has(entity.id) ? "border-cyan-300/35 bg-cyan-300/[0.055]" : undefined}>
             <span className="rounded-full border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs text-cyan-100">{entity.category}</span>
             <h2 className="mt-4 text-xl font-semibold text-white">{entity.label}</h2>
             <p className="mt-2 text-sm leading-6 text-slate-400">Target layer: {entity.targetLayer}. Affected pathway/system: {entity.affectedPathwayOrSystem}. Demo direction: {entity.expectedDirection}.</p>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-800"><div className="h-full rounded-full bg-violet-300" style={{ width: `${100 - entity.uncertainty}%` }} /></div>
             <p className="mt-2 text-xs text-slate-500">Related preset: {entity.preset}. Uncertainty: {entity.uncertainty}%.</p>
             <p className="mt-4 rounded-lg border border-amber-300/25 bg-amber-300/10 p-3 text-xs leading-5 text-amber-100">{entity.safetyLanguage}</p>
+            <button type="button" className="nexus-button mt-4 w-full" onClick={() => toggleIntervention(entity)}>
+              {activeIds.has(entity.id) ? "Remove from sandbox" : "Apply to sandbox"}
+            </button>
           </GlassCard>
         ))}
       </div>

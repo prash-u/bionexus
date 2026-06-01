@@ -36,41 +36,62 @@ const geneNames: Record<string, string> = {
 };
 
 export function ScenarioNetworkGraph() {
-  const { activePreset } = useSandbox();
+  const { activePreset, sandbox } = useSandbox();
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 780, h: 480 });
   const [nodes, setNodes] = useState<Node[]>([]);
   const [hover, setHover] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const activeImport = sandbox.networkPulseImports.find((item) => item.id === sandbox.activeNetworkPulseImportId);
 
   const genes = useMemo(
-    () =>
-      activePreset.keyGenes.map((symbol, index) => ({
+    () => {
+      if (activeImport) {
+        return activeImport.genes.map((gene) => ({
+          symbol: gene.symbol,
+          name: gene.name,
+          direction: gene.direction,
+          log2FC: gene.log2FC,
+          pAdj: gene.pAdj,
+          x: 0,
+          y: 0,
+          vx: 0,
+          vy: 0,
+          degree: 0
+        }));
+      }
+      return (sandbox.simulationResult.backtraceCandidates.length
+        ? sandbox.simulationResult.backtraceCandidates.map((candidate) => candidate.geneSymbol)
+        : activePreset.keyGenes
+      ).map((symbol, index) => ({
         symbol,
         name: geneNames[symbol] ?? `${symbol} signal`,
-        direction: index % 3 === 1 ? "down" as const : "up" as const,
-        log2FC: Number((1.1 + activePreset.organEffects[0].magnitude / 55 - index * 0.17).toFixed(2)),
+        direction: sandbox.simulationResult.backtraceCandidates.find((candidate) => candidate.geneSymbol === symbol)?.direction === "down" ? "down" as const : "up" as const,
+        log2FC: Number((1.1 + (sandbox.simulationResult.organEffects[0]?.magnitude ?? 50) / 55 - index * 0.17).toFixed(2)),
         pAdj: 10 ** -(4 + index),
         x: 0,
         y: 0,
         vx: 0,
         vy: 0,
         degree: 0
-      })),
-    [activePreset]
+      }));
+    },
+    [activeImport, activePreset.keyGenes, sandbox.simulationResult.backtraceCandidates, sandbox.simulationResult.organEffects]
   );
 
   const edges = useMemo<Edge[]>(
-    () =>
-      genes.flatMap((gene, index) => {
+    () => {
+      if (activeImport?.edges.length) return activeImport.edges;
+      return genes.flatMap((gene, index) => {
         const next = genes[(index + 1) % genes.length];
         const hub = genes[0];
         return [
           next ? { source: gene.symbol, target: next.symbol, score: 0.62 + index * 0.04 } : null,
           index > 1 && hub ? { source: hub.symbol, target: gene.symbol, score: 0.72 - index * 0.03 } : null
         ].filter((edge): edge is Edge => Boolean(edge));
-      }),
-    [genes]
+      });
+    },
+    [activeImport, genes]
   );
 
   useEffect(() => {
@@ -201,7 +222,8 @@ export function ScenarioNetworkGraph() {
         })}
       </svg>
       <div className="absolute bottom-3 left-3 flex flex-wrap gap-3 rounded-md border border-cyan-300/15 bg-slate-950/70 px-3 py-2 text-xs text-slate-300 backdrop-blur">
-        <span>Network Pulse layer: {activePreset.shortTitle}</span>
+        <span>Network Pulse layer: {activeImport?.label ?? activePreset.shortTitle}</span>
+        <span>{activeImport ? `${activeImport.genes.length} genes · ${activeImport.edges.length} edges` : "Synthetic scenario topology"}</span>
         <span>Size = hub degree x signal</span>
       </div>
     </div>

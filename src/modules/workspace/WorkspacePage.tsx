@@ -1,15 +1,17 @@
 import { useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowDown, ArrowUp, ScanHeart } from "lucide-react";
+import { Link } from "react-router-dom";
 import { EntityCard } from "@/components/cards/EntityCard";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EntityAuthoringPanel } from "@/components/workspace/EntityAuthoringPanel";
 import { HypothesisLab } from "@/components/workspace/HypothesisLab";
 import { ReasoningTrail } from "@/components/workspace/ReasoningTrail";
-import { abstractionLayers, entityTypeLabels } from "@/data/ontology/entityTypes";
+import { useSandbox } from "@/lib/sandbox/sandboxState";
 import { useWorkspace } from "@/lib/workspace/workspaceState";
 
 export function WorkspacePage() {
   const { workspace, addTrailStep, removeTrailStep, selectEntity } = useWorkspace();
+  const { activePreset, sandbox } = useSandbox();
   const keyEntities = workspace.entities.filter((entity) =>
     ["gene-snca", "protein-alpha-syn", "pathway-proteostasis", "cell-dopaminergic-neuron", "tissue-basal-ganglia", "intervention-dbs"].includes(entity.id)
   ).concat(workspace.entities.filter((entity) => entity.id.startsWith("user-")).slice(0, 4));
@@ -35,15 +37,42 @@ export function WorkspacePage() {
       </GlassCard>
       <div className="grid gap-5 xl:grid-cols-[0.75fr_1.25fr]">
         <GlassCard>
-          <h2 className="text-lg font-semibold text-white">Biological hierarchy</h2>
-          <div className="mt-4 space-y-2">
-            {abstractionLayers.map((layer, index) => (
-              <div key={layer} className="flex items-center gap-3 rounded-lg border border-slate-700/35 bg-slate-950/35 p-3">
-                <span className="w-6 text-xs text-cyan-200">{index + 1}</span>
-                <span className="flex-1 text-sm text-slate-200">{entityTypeLabels[layer]}</span>
-                {index < abstractionLayers.length - 1 ? <ArrowRight className="h-4 w-4 text-slate-600" /> : null}
+          <div className="flex items-center gap-2">
+            <ScanHeart className="h-5 w-5 text-cyan-200" />
+            <h2 className="text-lg font-semibold text-white">Active sandbox bridge</h2>
+          </div>
+          <p className="mt-2 text-sm leading-6 text-slate-400">
+            Workspace authoring is now anchored to the configured body sandbox instead of a static hierarchy poster.
+          </p>
+          <div className="mt-4 rounded-lg border border-cyan-300/20 bg-cyan-300/[0.055] p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-cyan-100">Current scenario</p>
+            <h3 className="mt-2 text-lg font-semibold text-white">{activePreset.title}</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-400">{sandbox.simulationResult.summary}</p>
+            <Link to="/body-sandbox" className="nexus-button mt-4 w-full">Fit user example in Body Sandbox</Link>
+          </div>
+          <div className="mt-4 grid gap-3">
+            <div className="rounded-lg border border-white/10 bg-slate-950/35 p-3">
+              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-violet-100">
+                <ArrowUp className="h-3.5 w-3.5" />
+                Upstream map
               </div>
-            ))}
+              <div className="mt-2 space-y-2 text-sm text-slate-300">
+                {sandbox.simulationResult.backtraceCandidates.slice(0, 3).map((candidate) => (
+                  <p key={candidate.id}><strong className="text-white">{candidate.geneSymbol}</strong> · {candidate.linkedPathways.slice(0, 2).join(" / ")}</p>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-slate-950/35 p-3">
+              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-emerald-100">
+                <ArrowDown className="h-3.5 w-3.5" />
+                Downstream map
+              </div>
+              <div className="mt-2 space-y-2 text-sm text-slate-300">
+                {sandbox.simulationResult.phenotypeEffects.slice(0, 3).map((effect) => (
+                  <p key={effect.phenotype}><strong className="text-white">{effect.label}</strong> · {effect.magnitude}%</p>
+                ))}
+              </div>
+            </div>
           </div>
         </GlassCard>
         <div className="grid gap-4 md:grid-cols-2">

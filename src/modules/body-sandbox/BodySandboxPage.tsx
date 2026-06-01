@@ -1,4 +1,7 @@
+import { BacktracePanel } from "@/components/sandbox/BacktracePanel";
 import { BiologicalLayerControls } from "@/components/sandbox/BiologicalLayerControls";
+import { MolecularImportPanel } from "@/components/sandbox/MolecularImportPanel";
+import { ParameterControlPanel } from "@/components/sandbox/ParameterControlPanel";
 import { SandboxOutputPanel } from "@/components/sandbox/SandboxOutputPanel";
 import { ScenarioBuilderPanel } from "@/components/sandbox/ScenarioBuilderPanel";
 import { WholeBodyVisualization } from "@/components/sandbox/WholeBodyVisualization";
@@ -7,18 +10,30 @@ import { ReasoningTrail } from "@/components/workspace/ReasoningTrail";
 import { useSandbox } from "@/lib/sandbox/sandboxState";
 
 export function BodySandboxPage() {
-  const { activePreset } = useSandbox();
+  const { activePreset, sandbox } = useSandbox();
   return (
     <div className="space-y-6">
-      <GlassCard className="p-6">
-        <p className="text-sm uppercase tracking-[0.2em] text-cyan-200">Body Sandbox</p>
-        <h1 className="mt-2 text-3xl font-semibold text-white">Configure biological states and observe body-scale consequence maps</h1>
-        <p className="mt-2 max-w-4xl text-slate-400">
-          Ask what happens when a biological system is predisposed, perturbed, inhibited, stimulated, damaged, rescued or modulated.
-        </p>
+      <GlassCard className="overflow-hidden p-6">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div>
+            <p className="text-sm uppercase tracking-[0.2em] text-cyan-200">Body Sandbox</p>
+            <h1 className="mt-2 text-3xl font-semibold text-white">Configure body state, trace molecular flow, and backtrace upstream biology</h1>
+            <p className="mt-2 max-w-4xl text-slate-400">
+              Ask what happens when a biological system is predisposed, perturbed, inhibited, stimulated, damaged, rescued or modulated, then inspect plausible genes and molecules behind the state.
+            </p>
+          </div>
+          <div className="rounded-lg border border-cyan-300/20 bg-cyan-300/[0.06] p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-cyan-100">Current simulation</p>
+            <p className="mt-2 text-sm leading-6 text-slate-300">{sandbox.simulationResult.summary}</p>
+          </div>
+        </div>
       </GlassCard>
-      <div className="grid gap-5 xl:grid-cols-[0.72fr_1.28fr]">
-        <ScenarioBuilderPanel />
+      <div className="grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)_360px]">
+        <div className="space-y-5">
+          <ScenarioBuilderPanel />
+          <ParameterControlPanel />
+          <MolecularImportPanel />
+        </div>
         <div className="space-y-5">
           <WholeBodyVisualization />
           <GlassCard>
@@ -26,6 +41,7 @@ export function BodySandboxPage() {
             <BiologicalLayerControls />
           </GlassCard>
         </div>
+        <BacktracePanel />
       </div>
       <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
         <GlassCard>

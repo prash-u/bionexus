@@ -55,13 +55,20 @@ export type ScenarioCategory =
 export type BodyRegionId =
   | "brain"
   | "eye"
+  | "thyroid"
   | "heart"
   | "lungs"
   | "liver"
+  | "stomach"
   | "pancreas"
+  | "intestine"
   | "gut"
+  | "spleen"
+  | "adipose"
   | "kidney"
   | "muscle"
+  | "boneMarrow"
+  | "skin"
   | "immune"
   | "peripheralNerves";
 
@@ -278,6 +285,211 @@ export interface ScenarioIntervention {
   relatedScenarioIds: string[];
 }
 
+export type ParameterControlId =
+  | "inflammation"
+  | "insulinSensitivity"
+  | "oxidativeStress"
+  | "mitochondrialFunction"
+  | "metabolicLoad"
+  | "neuralSynchrony"
+  | "immuneActivation"
+  | "retinalStress";
+
+export interface ParameterControlDefinition {
+  id: ParameterControlId;
+  label: string;
+  value: number;
+  lowLabel: string;
+  highLabel: string;
+  inverse?: boolean;
+}
+
+export interface ObservableSeries {
+  id: string;
+  label: string;
+  unit: string;
+  baseline: number;
+  current: number;
+  delta: number;
+  trend: number[];
+}
+
+export interface MolecularSource {
+  database: "Reactome" | "WikiPathways" | "ChEBI" | "GO" | "Curated";
+  id: string;
+  label: string;
+  url: string;
+}
+
+export interface MolecularPayload {
+  molecule: string;
+  moleculeClass: "small_molecule" | "protein" | "peptide_hormone" | "cytokine" | "neurotransmitter" | "gas" | "nucleic_acid" | "electrical_modulation";
+  direction: "source_to_target" | "target_to_source" | "bidirectional" | "modulatory";
+  ratio: string;
+  ratioBasis: "database_stoichiometry" | "reaction_equivalent" | "physiological_relative" | "modulatory_signal" | "curated_placeholder";
+  provenance: "database_exact" | "source_backed" | "curated_approximation";
+  unit: string;
+  sourceCompartment: string;
+  targetCompartment: string;
+  sources: MolecularSource[];
+  confidence: number;
+  assumptions: string[];
+}
+
+export interface MolecularImportSpec {
+  id: string;
+  source: MolecularSource["database"];
+  endpoint: string;
+  description: string;
+  supportedPayloads: Array<"reaction_participants" | "physical_entities" | "gpml_interactions" | "molecule_identity">;
+  offlinePolicy: "optional_live_fetch" | "curated_snapshot_required";
+}
+
+export interface MolecularImportSnapshot {
+  id: string;
+  source: MolecularSource["database"];
+  query: string;
+  label: string;
+  status: "ready" | "failed";
+  importedAt: string;
+  edgeIds: string[];
+  message?: string;
+}
+
+export interface MolecularEdge {
+  id: string;
+  scenarioIds: string[];
+  sourceRegionId: BodyRegionId;
+  targetRegionId: BodyRegionId;
+  label: string;
+  edgeKind: "transport" | "reaction" | "endocrine" | "neural" | "immune" | "gene_delivery" | "modulation";
+  pathwayContext: string;
+  payloads: MolecularPayload[];
+  baseFlux: number;
+  scenarioModifier: number;
+  notes: string;
+}
+
+export interface NetworkGeneSignal {
+  symbol: string;
+  name: string;
+  log2FC: number;
+  pAdj: number;
+  direction: "up" | "down";
+}
+
+export interface NetworkInteractionEdge {
+  source: string;
+  target: string;
+  score: number;
+}
+
+export interface NetworkPathwaySignal {
+  name: string;
+  source: "KEGG" | "Reactome" | "GO:BP" | "Curated";
+  pValue: number;
+  genes: string[];
+}
+
+export interface NetworkPulseImport {
+  id: string;
+  label: string;
+  source: string;
+  importedAt: string;
+  scenarioId: string;
+  genes: NetworkGeneSignal[];
+  edges: NetworkInteractionEdge[];
+  pathways: NetworkPathwaySignal[];
+  summary: string;
+}
+
+export type NeuralCircuitPresetId =
+  | "parkinsonian"
+  | "generic-motor"
+  | "underpowered"
+  | "therapeutic-window"
+  | "overdriven";
+
+export type NeuralSandboxMode = "tremor" | "stabilized";
+
+export interface NeuralStimulationSettings {
+  amplitude: number;
+  frequency: number;
+  pulseWidth: number;
+  radius: number;
+  noiseSeverity: number;
+  enabled: boolean;
+  mode: NeuralSandboxMode;
+  electrodeId: string;
+}
+
+export interface NeuralCircuitMetrics {
+  firingRate: number;
+  synchrony: number;
+  tremorIndex: number;
+  stimulationDose: number;
+  overloadRisk: number;
+  suppressionScore: number;
+  networkEntropy: number;
+}
+
+export interface NeuralCircuitAnalysis {
+  stateLabel: "underpowered" | "therapeutic" | "overdriven" | "suppressed";
+  effectiveness: number;
+  suppressionPotential: number;
+  overloadDrive: number;
+  parameterEffects: {
+    label: string;
+    status: "low" | "good" | "high";
+    detail: string;
+  }[];
+  teachingPoints: string[];
+}
+
+export interface NeuralCircuitState {
+  presetId: NeuralCircuitPresetId;
+  label: string;
+  summary: string;
+  stimulation: NeuralStimulationSettings;
+  metrics: NeuralCircuitMetrics;
+  analysis: NeuralCircuitAnalysis;
+  sentToBodyAt?: string;
+  updatedAt: string;
+}
+
+export interface BacktraceCandidate {
+  id: string;
+  geneSymbol: string;
+  geneName: string;
+  direction: "up" | "down" | "variant" | "dysregulated" | "unknown";
+  linkedPathways: string[];
+  linkedBodyRegions: BodyRegionId[];
+  linkedPhenotypes: string[];
+  score: number;
+  confidence: number;
+  evidenceIds: string[];
+  reasoning: string;
+  assumptions: string[];
+}
+
+export interface SandboxFocus {
+  kind: "region" | "pathway" | "gene" | "intervention" | "molecularEdge" | null;
+  id: string | null;
+}
+
+export interface SandboxSimulationResult {
+  id: string;
+  summary: string;
+  observables: ObservableSeries[];
+  organEffects: OrganEffect[];
+  systemEffects: SystemEffect[];
+  phenotypeEffects: PhenotypeEffect[];
+  pathwayDeltas: Record<string, number>;
+  molecularEdges: MolecularEdge[];
+  backtraceCandidates: BacktraceCandidate[];
+  generatedAt: string;
+}
+
 export interface BodySystemState {
   id: string;
   label: string;
@@ -354,13 +566,25 @@ export interface SimulationState {
 }
 
 export interface SandboxState {
-  version: "1.1";
+  version: "1.5";
   activeScenarioId: string;
   scenario: Scenario;
   presets: ScenarioPreset[];
   bodySystems: BodySystemState[];
   activeLayers: BiologicalLayer[];
   selectedRegionId: BodyRegionId;
+  selectedMolecularEdgeId?: string;
+  focus: SandboxFocus;
+  parameters: Record<ParameterControlId, number>;
+  pathwayTuning: Record<string, number>;
+  importedMolecularEdges: MolecularEdge[];
+  molecularImportSnapshots: MolecularImportSnapshot[];
+  molecularImportError?: string;
+  networkPulseImports: NetworkPulseImport[];
+  activeNetworkPulseImportId?: string;
+  networkPulseImportError?: string;
+  neuralCircuitState: NeuralCircuitState;
+  simulationResult: SandboxSimulationResult;
   moduleOutputs: ModuleOutput[];
   updatedAt: string;
 }

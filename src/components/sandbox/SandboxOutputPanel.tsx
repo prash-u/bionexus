@@ -6,6 +6,13 @@ import { useSandbox } from "@/lib/sandbox/sandboxState";
 
 export function SandboxOutputPanel() {
   const { activePreset, sandbox, setModuleIncluded } = useSandbox();
+  const topGenes = sandbox.simulationResult.backtraceCandidates.slice(0, 4).map((item) => `${item.geneSymbol} (${Math.round(item.score * 100)}%)`);
+  const topObservables = sandbox.simulationResult.observables
+    .slice()
+    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+    .slice(0, 4)
+    .map((item) => `${item.label}: ${Math.round(item.current * 100)}%`);
+  const activeNetworkImport = sandbox.networkPulseImports.find((item) => item.id === sandbox.activeNetworkPulseImportId);
   return (
     <GlassCard>
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -18,8 +25,13 @@ export function SandboxOutputPanel() {
       <div className="grid gap-3 md:grid-cols-2">
         <OutputBlock title="Affected systems" items={activePreset.affectedSystems} />
         <OutputBlock title="Key pathways" items={activePreset.keyPathways} />
-        <OutputBlock title="Affected regions" items={activePreset.affectedRegions.map((id) => bodyRegionLabels[id])} />
+        <OutputBlock title="Computed regions" items={sandbox.simulationResult.organEffects.slice(0, 6).map((effect) => `${bodyRegionLabels[effect.organ]} ${effect.magnitude}%`)} />
         <OutputBlock title="Active interventions" items={sandbox.scenario.interventions.map((item) => item.label)} />
+        <OutputBlock title="Observable shifts" items={topObservables} />
+        <OutputBlock title="Backtraced genes" items={topGenes} />
+        <OutputBlock title="Molecular edges" items={sandbox.simulationResult.molecularEdges.map((edge) => edge.label)} />
+        <OutputBlock title="Network Pulse import" items={activeNetworkImport ? [activeNetworkImport.summary] : ["No imported network signal"]} />
+        <OutputBlock title="Neural circuit state" items={[sandbox.neuralCircuitState.summary]} />
       </div>
       <div className="mt-4 rounded-lg border border-slate-700/40 bg-slate-950/35 p-4">
         <p className="mb-3 text-sm font-semibold text-white">Module outputs included in report</p>
