@@ -71,7 +71,9 @@ export function buildSandboxSimulationResult(input: BuildInput): SandboxSimulati
 
   return {
     id: `sim-${input.preset.id}`,
-    summary: `${input.preset.shortTitle} projects strongest body pressure at ${leadOrgan.label} and backtraces most strongly to ${leadGene?.geneSymbol ?? "no candidate"} under the current sandbox assumptions.`,
+    summary: input.preset.id === "healthy-baseline"
+      ? "Healthy Baseline shows a stable reference body state with no dominant disruption selected."
+      : `${input.preset.shortTitle} shows the strongest relative effect at ${leadOrgan.label} and highlights ${leadGene?.geneSymbol ?? "candidate genes"} as one possible upstream factor under the current sandbox assumptions.`,
     observables,
     organEffects,
     systemEffects,
@@ -108,7 +110,7 @@ function computeOrganEffects(input: BuildInput, pressure: number, interventionRe
       ...(original ?? fallbackOrgan(id)),
       direction: magnitude > 66 ? "stress" : magnitude > 44 ? "activation" : original?.direction ?? "baseline",
       magnitude,
-      label: original?.label ?? "Computed sandbox pressure"
+      label: original?.label ?? "Sandbox model activity"
     });
   });
 
@@ -301,7 +303,7 @@ function systemPressure(parameters: Record<ParameterControlId, number>) {
 function fallbackOrgan(id: BodyRegionId): OrganEffect {
   return {
     organ: id,
-    label: "Computed sandbox pressure",
+    label: "Sandbox model activity",
     direction: "baseline",
     magnitude: 18,
     sourceEntityId: `region-${id}`,

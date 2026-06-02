@@ -33,8 +33,8 @@ export function HomePage() {
         </GlassCard>
         <GlassCard>
           <p className="text-sm uppercase tracking-[0.18em] text-violet-200">Configurable sandbox</p>
-          <h2 className="mt-2 text-2xl font-semibold text-white">From preset scenario to biological consequence map</h2>
-          <p className="mt-3 text-sm leading-6 text-slate-400">Choose a scenario, modify assumptions, trace pathway consequences across the body, then export the reasoning trail.</p>
+          <h2 className="mt-2 text-2xl font-semibold text-white">From whatever biology you have to a sandboxed reasoning map</h2>
+          <p className="mt-3 text-sm leading-6 text-slate-400">Start from a gene, pathway, organ, phenotype, intervention or example condition, then let BioNexus project possible relationships upstream and downstream across the body.</p>
           <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-slate-200">
             <div className="rounded-lg bg-slate-950/45 p-3"><strong>{workspace.entities.length}</strong><br />entities</div>
             <div className="rounded-lg bg-slate-950/45 p-3"><strong>{workspace.relationships.length}</strong><br />relationships</div>
@@ -48,11 +48,11 @@ export function HomePage() {
         <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr]">
           <div>
             <p className="text-sm uppercase tracking-[0.2em] text-violet-200">Start from whatever data you have</p>
-            <h2 className="mt-2 text-2xl font-semibold text-white">Build a sandbox experience across the hierarchy</h2>
+            <h2 className="mt-2 text-2xl font-semibold text-white">Build your sandbox from whatever layer you already know</h2>
             <p className="mt-3 text-sm leading-6 text-slate-400">
-              Pick the layer your example lives in, then BioNexus should extrapolate upstream toward genes and proteins and downstream toward tissues, phenotypes, scenarios and interventions.
+              Pick the layer your example lives in. BioNexus uses the shared ontology to suggest possible genetic/protein context, pathway mechanisms, organ/system effects, phenotype changes and testable sandbox interventions.
             </p>
-            <Link to="/body-sandbox" className="nexus-button mt-5">Fit an example now</Link>
+            <Link to="/body-sandbox" className="nexus-button mt-5">Open the sandbox builder</Link>
           </div>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
             {abstractionLayers.map((layer, index) => (

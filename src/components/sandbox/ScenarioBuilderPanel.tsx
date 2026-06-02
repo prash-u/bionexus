@@ -58,6 +58,44 @@ const evidencePatterns: Array<{
   }
 ];
 
+const healthyPatterns: typeof evidencePatterns = [
+  {
+    id: "baseline-neural",
+    label: "Neural activity",
+    description: "Adjusts reference neural signalling without selecting a disease or disruption.",
+    patch: { neuralSynchrony: 0.34, mitochondrialFunction: 0.72, oxidativeStress: 0.2 },
+    pathwayBias: 0.04
+  },
+  {
+    id: "baseline-metabolic",
+    label: "Metabolic load",
+    description: "Explores normal-range changes in glucose, liver and muscle energy balance.",
+    patch: { insulinSensitivity: 0.7, metabolicLoad: 0.3, mitochondrialFunction: 0.7 },
+    pathwayBias: 0.04
+  },
+  {
+    id: "baseline-inflammatory",
+    label: "Inflammatory tone",
+    description: "Adjusts immune activity within a low-disruption reference state.",
+    patch: { immuneActivation: 0.28, inflammation: 0.24, oxidativeStress: 0.22 },
+    pathwayBias: 0.03
+  },
+  {
+    id: "baseline-retinal",
+    label: "Visual/retinal stress",
+    description: "Explores mild visual-system load without implying retinal degeneration.",
+    patch: { retinalStress: 0.3, oxidativeStress: 0.2, inflammation: 0.18 },
+    pathwayBias: 0.02
+  },
+  {
+    id: "baseline-support",
+    label: "Recovery/support state",
+    description: "Raises supportive physiology such as mitochondrial reserve and lower inflammatory tone.",
+    patch: { inflammation: 0.16, immuneActivation: 0.2, oxidativeStress: 0.18, mitochondrialFunction: 0.82 },
+    pathwayBias: -0.08
+  }
+];
+
 export function ScenarioBuilderPanel({ showInterventions = false }: { showInterventions?: boolean }) {
   const { sandbox, activePreset, selectPreset, togglePredisposition, togglePerturbation, toggleIntervention, setPathwayTuning, applySandboxTuning } = useSandbox();
   const activePredispositions = new Set(sandbox.scenario.predispositions.map((item) => item.id));
@@ -65,11 +103,17 @@ export function ScenarioBuilderPanel({ showInterventions = false }: { showInterv
   const activeInterventions = new Set(sandbox.scenario.interventions.map((item) => item.id));
   const [knownLayer, setKnownLayer] = useState<BiologicalLayer>("phenotypes");
   const [exampleText, setExampleText] = useState("Observed tremor + motor slowing after neural-circuit perturbation");
+  const isHealthyBaseline = sandbox.activeScenarioId === "healthy-baseline";
+  const readerMode = getReaderMode();
+  const showMechanisticTrace = readerMode === "researcher" || readerMode === "expert";
 
   const topBacktrace = sandbox.simulationResult.backtraceCandidates.slice(0, 3);
   const topPhenotypes = sandbox.simulationResult.phenotypeEffects.slice(0, 3);
   const selectedLayer = dataLayerOptions.find((item) => item.id === knownLayer) ?? dataLayerOptions[0];
   const extrapolation = useMemo(() => buildExtrapolationCopy(knownLayer), [knownLayer]);
+  const patterns = isHealthyBaseline ? healthyPatterns : evidencePatterns;
+  const upstreamLabel = showMechanisticTrace ? "Trace upstream" : "Possible upstream factors";
+  const downstreamLabel = showMechanisticTrace ? "Trace downstream" : "Possible downstream effects";
 
   const applyPattern = (pattern: (typeof evidencePatterns)[number]) => {
     applySandboxTuning({
@@ -112,9 +156,9 @@ export function ScenarioBuilderPanel({ showInterventions = false }: { showInterv
         </div>
 
         <div>
-          <p className="mb-2 text-xs uppercase tracking-[0.18em] text-slate-500">Apply a biological state pattern</p>
+          <p className="mb-2 text-xs uppercase tracking-[0.18em] text-slate-500">Adjust model state</p>
           <div className="grid gap-2">
-            {evidencePatterns.map((pattern) => (
+            {patterns.map((pattern) => (
               <button
                 key={pattern.id}
                 type="button"
@@ -132,15 +176,17 @@ export function ScenarioBuilderPanel({ showInterventions = false }: { showInterv
         </div>
 
         <div className="rounded-lg border border-violet-300/20 bg-violet-300/[0.055] p-4">
-          <p className="text-xs uppercase tracking-[0.18em] text-violet-100">Bidirectional extrapolation</p>
+          <p className="text-xs uppercase tracking-[0.18em] text-violet-100">Knowledge Path</p>
           <div className="mt-3 grid gap-3">
             <div className="rounded-md border border-white/10 bg-slate-950/35 p-3">
               <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-cyan-100">
                 <ArrowUp className="h-3.5 w-3.5" />
-                Upstream causes to inspect
+                {upstreamLabel}
               </div>
               <div className="space-y-2 text-sm text-slate-300">
-                {topBacktrace.map((candidate) => (
+                {isHealthyBaseline && !showMechanisticTrace ? (
+                  <p>No dominant disruption selected.</p>
+                ) : topBacktrace.map((candidate) => (
                   <p key={candidate.id}><strong className="text-white">{candidate.geneSymbol}</strong> via {candidate.linkedPathways.slice(0, 2).join(" / ")}</p>
                 ))}
               </div>
@@ -148,11 +194,11 @@ export function ScenarioBuilderPanel({ showInterventions = false }: { showInterv
             <div className="rounded-md border border-white/10 bg-slate-950/35 p-3">
               <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-100">
                 <ArrowDown className="h-3.5 w-3.5" />
-                Downstream consequence map
+                {downstreamLabel}
               </div>
               <div className="space-y-2 text-sm text-slate-300">
                 {topPhenotypes.map((effect) => (
-                  <p key={effect.phenotype}><strong className="text-white">{effect.label}</strong> · {effect.magnitude}% model pressure</p>
+                  <p key={effect.phenotype}><strong className="text-white">{effect.label}</strong> · {effect.magnitude}% relative effect</p>
                 ))}
               </div>
             </div>
@@ -206,11 +252,20 @@ export function ScenarioBuilderPanel({ showInterventions = false }: { showInterv
 
 function buildExtrapolationCopy(layer: BiologicalLayer) {
   if (layer === "genes") return "Starting from genes: BioNexus projects toward proteins, pathways, tissues, organs, phenotypes, scenarios and interventions.";
-  if (layer === "proteins") return "Starting from proteins: the sandbox backtraces likely gene context and projects pathway and tissue consequences.";
+  if (layer === "proteins") return "Starting from proteins: the sandbox suggests possible gene context and projects pathway and tissue relationships.";
   if (layer === "pathways") return "Starting from pathways: the sandbox ranks upstream genes and downstream body systems most affected by the selected signal.";
-  if (layer === "tissues") return "Starting from tissue or organ state: backtracing emphasizes genes and pathways that could plausibly explain the body-region pressure.";
-  if (layer === "phenotypes") return "Starting from phenotype: BioNexus walks backward toward candidate genes/pathways and forward toward scenario progression and interventions.";
-  return "Starting from intervention or exposure: the sandbox treats it as a perturbation and shows possible pathway, organ and phenotype modulation.";
+  if (layer === "tissues") return "Starting from tissue or organ state: the sandbox suggests genes and pathways that could plausibly relate to the selected body-region signal.";
+  if (layer === "phenotypes") return "Starting from phenotype: BioNexus walks backward toward candidate genes/pathways and forward toward scenario-level effects.";
+  return "Starting from intervention or exposure: the sandbox treats it as a perturbation and shows possible pathway, organ and phenotype effects.";
+}
+
+function getReaderMode() {
+  if (typeof window === "undefined") return "student";
+  const mode = window.localStorage.getItem("bionexus:user-mode") ?? window.localStorage.getItem("userMode");
+  const complexity = window.localStorage.getItem("bionexus:complexity-level") ?? window.localStorage.getItem("complexityLevel");
+  if (complexity === "expert") return "expert";
+  if (mode === "researcher" || mode === "clinician" || complexity === "advanced") return "researcher";
+  return "student";
 }
 
 function ToggleList<T extends { id: string; label: string; description?: string }>({

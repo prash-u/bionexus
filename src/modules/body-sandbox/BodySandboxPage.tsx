@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Activity, ArrowDown, ArrowUp, BrainCircuit, FlaskConical, Network, ScanHeart, Zap, type LucideIcon } from "lucide-react";
+import { Activity, ArrowDown, ArrowUp, BrainCircuit, FlaskConical, Network, Radar, ScanHeart, Zap, type LucideIcon } from "lucide-react";
 import { ScenarioNetworkGraph } from "@/components/graph/ScenarioNetworkGraph";
 import { BiologicalLayerControls } from "@/components/sandbox/BiologicalLayerControls";
 import { MolecularImportPanel } from "@/components/sandbox/MolecularImportPanel";
@@ -41,11 +41,11 @@ const zoomLevels: Array<{ id: BodyZoomLevel; label: string }> = [
   { id: "molecular", label: "Cellular/Molecular Context" }
 ];
 
-export function BodySandboxPage() {
+export function BodySandboxPage({ initialView = "body" }: { initialView?: SandboxView } = {}) {
   const { sandbox, setModuleIncluded, applyNeuralCircuitPreset, updateNeuralStimulation, sendNeuralStateToBodySandbox } = useSandbox();
   const { userMode, complexityLevel } = useAppSettings();
-  const [activeView, setActiveView] = useState<SandboxView>("body");
-  const [interventionUnlocked, setInterventionUnlocked] = useState(false);
+  const [activeView, setActiveView] = useState<SandboxView>(initialView);
+  const [interventionUnlocked, setInterventionUnlocked] = useState(initialView === "intervention");
   const [activeSystems, setActiveSystems] = useState<BodySystemFilterId[]>(systemFilters.map((system) => system.id));
   const [zoomLevel, setZoomLevel] = useState<BodyZoomLevel>("wholeBody");
   const beginner = complexityLevel === "basic";
@@ -72,7 +72,7 @@ export function BodySandboxPage() {
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div>
             <p className="text-sm uppercase tracking-[0.2em] text-cyan-200">SandboxState workspace</p>
-            <h1 className="mt-2 text-3xl font-semibold text-white">Configure, observe, understand, perturb, export</h1>
+            <h1 className="mt-2 text-3xl font-semibold text-white">{sandboxHeadline(userMode, complexityLevel)}</h1>
             <p className="mt-2 max-w-4xl text-slate-400">
               One biological state drives the body view, knowledge path, activity layer, interventions and reports.
             </p>
@@ -84,7 +84,7 @@ export function BodySandboxPage() {
         </div>
       </GlassCard>
 
-      <div className="grid gap-4 xl:grid-cols-[370px_minmax(0,1fr)]">
+      <div className="grid gap-4 2xl:grid-cols-[430px_minmax(0,1fr)] xl:grid-cols-[390px_minmax(0,1fr)]">
         <div className="space-y-4">
           <ScenarioBuilderPanel showInterventions={interventionUnlocked} />
           {!beginner ? <ParameterControlPanel /> : null}
@@ -234,15 +234,19 @@ function KnowledgePathView({ expert }: { expert: boolean }) {
         <PathCard title="Trace Upstream" icon={ArrowUp} items={upstreamPath} />
         <PathCard title="Trace Downstream" icon={ArrowDown} items={downstream} />
       </div>
-      {expert ? (
-        <GlassCard>
-          <div className="mb-4 flex items-center gap-2">
+      <GlassCard>
+        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-center gap-2">
             <Network className="h-5 w-5 text-cyan-200" />
-            <h3 className="text-lg font-semibold text-white">Secondary graph evidence</h3>
+            <div>
+              <h3 className="text-lg font-semibold text-white">Scenario relationship graph</h3>
+              <p className="mt-1 text-sm text-slate-400">Network Pulse style topology, driven by the active sandbox scenario.</p>
+            </div>
           </div>
-          <ScenarioNetworkGraph />
-        </GlassCard>
-      ) : null}
+          {!expert ? <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs text-cyan-100">Simplified labels</span> : null}
+        </div>
+        <ScenarioNetworkGraph />
+      </GlassCard>
     </div>
   );
 }
@@ -293,10 +297,29 @@ function ActivityView({
             <Metric label="Overload" value={neural.metrics.overloadRisk} />
             <Metric label="Suppression" value={neural.metrics.suppressionScore} />
           </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <DBSMetric label="Amplitude" value={`${neural.stimulation.amplitude.toFixed(1)} mA`} />
+            <DBSMetric label="Frequency" value={`${Math.round(neural.stimulation.frequency)} Hz`} />
+            <DBSMetric label="Pulse width" value={`${Math.round(neural.stimulation.pulseWidth)} us`} />
+          </div>
           <label className="mt-4 block text-sm text-slate-300">
-            <span className="mb-2 flex justify-between"><strong className="text-white">Neural synchrony pressure</strong><span>{Math.round(neural.stimulation.noiseSeverity * 100)}%</span></span>
+            <span className="mb-2 flex justify-between"><strong className="text-white">Neural synchrony level</strong><span>{Math.round(neural.stimulation.noiseSeverity * 100)}%</span></span>
             <input className="w-full accent-violet-300" type="range" min={0.1} max={1} step={0.01} value={neural.stimulation.noiseSeverity} onChange={(event) => updateNeuralStimulation({ noiseSeverity: Number(event.target.value) })} />
           </label>
+          <div className="mt-3 grid gap-3 md:grid-cols-3">
+            <label className="block text-xs text-slate-400">
+              <span className="mb-1 flex justify-between"><strong className="text-slate-200">DBS amplitude</strong><span>{neural.stimulation.amplitude.toFixed(1)}</span></span>
+              <input className="w-full accent-cyan-300" type="range" min={0} max={5} step={0.1} value={neural.stimulation.amplitude} onChange={(event) => updateNeuralStimulation({ amplitude: Number(event.target.value) })} />
+            </label>
+            <label className="block text-xs text-slate-400">
+              <span className="mb-1 flex justify-between"><strong className="text-slate-200">Frequency</strong><span>{Math.round(neural.stimulation.frequency)}</span></span>
+              <input className="w-full accent-violet-300" type="range" min={60} max={190} step={1} value={neural.stimulation.frequency} onChange={(event) => updateNeuralStimulation({ frequency: Number(event.target.value) })} />
+            </label>
+            <label className="block text-xs text-slate-400">
+              <span className="mb-1 flex justify-between"><strong className="text-slate-200">Pulse width</strong><span>{Math.round(neural.stimulation.pulseWidth)}</span></span>
+              <input className="w-full accent-emerald-300" type="range" min={30} max={180} step={1} value={neural.stimulation.pulseWidth} onChange={(event) => updateNeuralStimulation({ pulseWidth: Number(event.target.value) })} />
+            </label>
+          </div>
         </GlassCard>
       </div>
     </div>
@@ -360,23 +383,42 @@ function ActivityMap() {
   const suppression = sandbox.neuralCircuitState.metrics.suppressionScore;
 
   return (
-    <div className="relative min-h-[360px] overflow-hidden rounded-lg border border-violet-300/15 bg-[#050917]">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_45%_24%,rgba(34,211,238,0.18),transparent_30%),radial-gradient(circle_at_58%_64%,rgba(168,85,247,0.18),transparent_34%)]" />
-      <svg viewBox="0 0 680 360" className="relative h-[360px] w-full">
-        <path d="M178 78c72-62 244-62 320 0 62 50 62 158-8 206-78 54-236 52-306 0-68-50-70-156-6-206Z" fill="rgba(15,23,42,0.78)" stroke="rgba(125,211,252,0.38)" strokeWidth="2" />
+    <div className="relative min-h-[430px] overflow-hidden rounded-lg border border-violet-300/15 bg-[#050917]">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_45%_24%,rgba(34,211,238,0.2),transparent_30%),radial-gradient(circle_at_58%_64%,rgba(168,85,247,0.2),transparent_34%)]" />
+      <div className="absolute right-4 top-4 z-10 rounded-full border border-cyan-300/25 bg-slate-950/70 px-3 py-1 text-xs text-cyan-100">
+        <Radar className="mr-1 inline h-3.5 w-3.5" />
+        Cortical + DBS sandbox
+      </div>
+      <svg viewBox="0 0 760 430" className="relative h-[430px] w-full">
+        <defs>
+          <filter id="activityGlow"><feGaussianBlur stdDeviation="5" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+          <linearGradient id="cortexShell" x1="0" x2="1"><stop offset="0%" stopColor="rgba(15,23,42,0.92)" /><stop offset="100%" stopColor="rgba(30,41,59,0.72)" /></linearGradient>
+        </defs>
+        <path d="M174 92c85-76 301-76 390 0 72 62 72 196-10 256-92 68-286 66-372 0-82-62-84-194-8-256Z" fill="url(#cortexShell)" stroke="rgba(125,211,252,0.42)" strokeWidth="2" />
+        <path d="M234 96c18 42 24 88 8 132M330 70c-12 54-10 102 8 148M450 72c12 48 4 96-22 142M556 114c-30 34-44 78-40 128" fill="none" stroke="rgba(148,163,184,0.22)" strokeWidth="2" />
+        <path d="M374 138 C344 194 342 253 376 306" fill="none" stroke="rgba(34,211,238,0.34)" strokeWidth="5" strokeLinecap="round" strokeDasharray="8 10" />
+        <path d="M448 142 C484 196 484 252 452 306" fill="none" stroke="rgba(168,85,247,0.34)" strokeWidth="5" strokeLinecap="round" strokeDasharray="8 10" />
         {[
-          [240, 144, "Frontal", synchrony],
-          [340, 108, "Motor", sandbox.neuralCircuitState.metrics.tremorIndex],
-          [448, 148, "Sensory", overload],
-          [316, 234, "Basal loop", 1 - suppression],
-          [410, 238, "Thalamic relay", synchrony * 0.8 + overload * 0.2]
+          [248, 154, "Frontal", synchrony],
+          [365, 122, "Motor cortex", sandbox.neuralCircuitState.metrics.tremorIndex],
+          [496, 160, "Sensory", overload],
+          [344, 280, "Basal ganglia", 1 - suppression],
+          [462, 278, "Thalamic relay", synchrony * 0.8 + overload * 0.2],
+          [592, 234, "Cerebellar loop", overload * 0.45 + synchrony * 0.35]
         ].map(([x, y, label, value]) => (
           <g key={label as string}>
             <circle cx={x as number} cy={y as number} r={34 + (value as number) * 30} fill={(value as number) > 0.65 ? "#fb7185" : "#22d3ee"} opacity={0.12 + (value as number) * 0.28} />
-            <circle cx={x as number} cy={y as number} r={15 + (value as number) * 12} fill={(value as number) > 0.65 ? "#fb7185" : "#67e8f9"} opacity="0.86" />
+            <circle cx={x as number} cy={y as number} r={15 + (value as number) * 12} fill={(value as number) > 0.65 ? "#fb7185" : "#67e8f9"} opacity="0.86" filter="url(#activityGlow)" />
             <text x={x as number} y={(y as number) + 48} textAnchor="middle" fill="#e2e8f0" fontSize="12" fontWeight="700">{label as string}</text>
           </g>
         ))}
+        <g>
+          <line x1="380" y1="66" x2="346" y2="278" stroke="rgba(52,211,153,0.72)" strokeWidth="3" />
+          <line x1="448" y1="66" x2="462" y2="278" stroke="rgba(52,211,153,0.72)" strokeWidth="3" />
+          <circle cx="380" cy="66" r="8" fill="#34d399" filter="url(#activityGlow)" />
+          <circle cx="448" cy="66" r="8" fill="#34d399" filter="url(#activityGlow)" />
+          <text x="414" y="48" textAnchor="middle" fill="#a7f3d0" fontSize="12" fontWeight="700">DBS leads</text>
+        </g>
       </svg>
     </div>
   );
@@ -389,4 +431,20 @@ function Metric({ label, value }: { label: string; value: number }) {
       <p className="mt-1 text-lg font-semibold text-white">{Math.round(value * 100)}%</p>
     </div>
   );
+}
+
+function DBSMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-emerald-300/20 bg-emerald-300/[0.055] p-3">
+      <p className="text-xs uppercase tracking-[0.14em] text-emerald-100/70">{label}</p>
+      <p className="mt-1 text-lg font-semibold text-emerald-50">{value}</p>
+    </div>
+  );
+}
+
+function sandboxHeadline(userMode: string, complexityLevel: string) {
+  if (complexityLevel === "basic" || userMode === "student") return "Choose a body model, adjust settings, and see which systems respond";
+  if (userMode === "researcher") return "Inspect scenario assumptions across molecular, tissue and system relationships";
+  if (complexityLevel === "expert") return "Inspect ontology-linked entities, relationships, assumptions and sandbox state";
+  return "Explore how genes, pathways, organs, systems and interventions connect";
 }

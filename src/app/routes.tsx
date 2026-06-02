@@ -7,11 +7,11 @@ export const routes = [
   { path: "/", element: <HomePage /> },
   { path: "/body-sandbox", element: <BodySandboxPage /> },
   { path: "/workspace", element: <BodySandboxPage /> },
-  { path: "/body-atlas", element: <BodySandboxPage /> },
-  { path: "/neural-circuit", element: <BodySandboxPage /> },
-  { path: "/knowledge-graph", element: <BodySandboxPage /> },
-  { path: "/simulation-studio", element: <BodySandboxPage /> },
-  { path: "/interventions", element: <BodySandboxPage /> },
+  { path: "/body-atlas", element: <BodySandboxPage initialView="body" /> },
+  { path: "/neural-circuit", element: <BodySandboxPage initialView="activity" /> },
+  { path: "/knowledge-graph", element: <BodySandboxPage initialView="knowledge" /> },
+  { path: "/simulation-studio", element: <BodySandboxPage initialView="activity" /> },
+  { path: "/interventions", element: <BodySandboxPage initialView="intervention" /> },
   { path: "/reports", element: <ReportsPage /> },
   { path: "/settings", element: <SettingsPage /> }
 ];
