@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Activity, ArrowDown, ArrowUp, BrainCircuit, FlaskConical, Network, Radar, ScanHeart, Zap, type LucideIcon } from "lucide-react";
+import { Activity, ArrowDown, ArrowUp, BrainCircuit, ChevronDown, ChevronUp, FlaskConical, Network, PanelLeftClose, PanelLeftOpen, Radar, ScanHeart, Zap, type LucideIcon } from "lucide-react";
 import { ScenarioNetworkGraph } from "@/components/graph/ScenarioNetworkGraph";
 import { BiologicalLayerControls } from "@/components/sandbox/BiologicalLayerControls";
 import { MolecularImportPanel } from "@/components/sandbox/MolecularImportPanel";
 import { ParameterControlPanel } from "@/components/sandbox/ParameterControlPanel";
 import { SandboxOutputPanel } from "@/components/sandbox/SandboxOutputPanel";
 import { ScenarioBuilderPanel } from "@/components/sandbox/ScenarioBuilderPanel";
-import { WholeBodyVisualization, type BodySystemFilterId, type BodyZoomLevel } from "@/components/sandbox/WholeBodyVisualization";
+import { WholeBodyVisualization, type BodySystemFilterId } from "@/components/sandbox/WholeBodyVisualization";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { bodyRegionLabels } from "@/data/scenarios/presets";
 import { neuralCircuitPresets } from "@/lib/neural/neuralEngine";
@@ -34,20 +34,14 @@ const systemFilters: Array<{ id: BodySystemFilterId; label: string }> = [
   { id: "ocular", label: "Ocular" }
 ];
 
-const zoomLevels: Array<{ id: BodyZoomLevel; label: string }> = [
-  { id: "wholeBody", label: "Whole Body" },
-  { id: "system", label: "System" },
-  { id: "region", label: "Region" },
-  { id: "molecular", label: "Cellular/Molecular Context" }
-];
-
 export function BodySandboxPage({ initialView = "body" }: { initialView?: SandboxView } = {}) {
   const { sandbox, setModuleIncluded, applyNeuralCircuitPreset, updateNeuralStimulation, sendNeuralStateToBodySandbox } = useSandbox();
   const { userMode, complexityLevel } = useAppSettings();
   const [activeView, setActiveView] = useState<SandboxView>(initialView);
   const [interventionUnlocked, setInterventionUnlocked] = useState(initialView === "intervention");
   const [activeSystems, setActiveSystems] = useState<BodySystemFilterId[]>(systemFilters.map((system) => system.id));
-  const [zoomLevel, setZoomLevel] = useState<BodyZoomLevel>("wholeBody");
+  const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
+  const [bottomDrawerOpen, setBottomDrawerOpen] = useState(false);
   const beginner = complexityLevel === "basic";
   const expert = complexityLevel === "expert" || userMode === "researcher";
 
@@ -67,38 +61,60 @@ export function BodySandboxPage({ initialView = "body" }: { initialView?: Sandbo
   };
 
   return (
-    <div className="space-y-5">
-      <GlassCard className="overflow-hidden p-6">
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <div>
-            <p className="text-sm uppercase tracking-[0.2em] text-cyan-200">SandboxState workspace</p>
-            <h1 className="mt-2 text-3xl font-semibold text-white">{sandboxHeadline(userMode, complexityLevel)}</h1>
-            <p className="mt-2 max-w-4xl text-slate-400">
-              One biological state drives the body view, knowledge path, activity layer, interventions and reports.
-            </p>
-          </div>
-          <div className="rounded-lg border border-cyan-300/20 bg-cyan-300/[0.06] p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-cyan-100">Current state</p>
-            <p className="mt-2 text-sm leading-6 text-slate-300">{sandbox.simulationResult.summary}</p>
-          </div>
+    <div className="min-h-[calc(100vh-5.5rem)] space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-cyan-300/15 bg-slate-950/55 px-4 py-3 shadow-[0_0_30px_rgba(34,211,238,0.06)]">
+        <div className="min-w-0">
+          <p className="text-xs uppercase tracking-[0.2em] text-cyan-200">Body Sandbox Workspace</p>
+          <h1 className="truncate text-lg font-semibold text-white">{sandboxHeadline(userMode, complexityLevel)}</h1>
         </div>
-      </GlassCard>
-
-      <div className="grid gap-4 2xl:grid-cols-[430px_minmax(0,1fr)] xl:grid-cols-[390px_minmax(0,1fr)]">
-        <div className="space-y-4">
-          <ScenarioBuilderPanel showInterventions={interventionUnlocked} />
-          {!beginner ? <ParameterControlPanel /> : null}
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-cyan-50">{sandbox.scenario.title}</span>
+          <span className="hidden max-w-[48rem] truncate rounded-full border border-white/10 bg-slate-950/70 px-3 py-1 text-slate-300 2xl:inline">{sandbox.simulationResult.summary}</span>
         </div>
+      </div>
 
-        <div className="space-y-4">
-          <GlassCard className="p-3">
-            <div className="grid gap-2 md:grid-cols-3 xl:grid-cols-4">
+      <div
+        className={`grid min-h-[calc(100vh-10rem)] gap-3 ${
+          leftPanelCollapsed ? "xl:grid-cols-[4.25rem_minmax(0,1fr)]" : "xl:grid-cols-[minmax(17rem,18vw)_minmax(0,1fr)] 2xl:grid-cols-[minmax(18rem,19vw)_minmax(0,1fr)]"
+        }`}
+      >
+        <aside className="min-w-0">
+          <div className="sticky top-20 space-y-3">
+            <GlassCard className="p-2">
+              <button
+                type="button"
+                className="flex w-full items-center justify-between rounded-lg border border-cyan-300/20 bg-cyan-300/[0.06] px-3 py-2 text-left text-xs font-semibold uppercase tracking-[0.16em] text-cyan-100 transition hover:border-cyan-200/45"
+                onClick={() => setLeftPanelCollapsed((value) => !value)}
+              >
+                <span>{leftPanelCollapsed ? "Controls" : "Scenario Controls"}</span>
+                {leftPanelCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+              </button>
+            </GlassCard>
+            {leftPanelCollapsed ? (
+              <GlassCard className="flex min-h-[34rem] flex-col items-center gap-4 p-3 text-center">
+                <ScanHeart className="mt-2 h-5 w-5 text-cyan-200" />
+                <FlaskConical className="h-5 w-5 text-emerald-200" />
+                <Activity className="h-5 w-5 text-violet-200" />
+                <span className="mt-2 [writing-mode:vertical-rl] text-xs uppercase tracking-[0.18em] text-slate-400">Sandbox parameters</span>
+              </GlassCard>
+            ) : (
+              <div className="max-h-[calc(100vh-11.5rem)] space-y-3 overflow-y-auto pr-1">
+                <ScenarioBuilderPanel showInterventions={interventionUnlocked} />
+                {!beginner ? <ParameterControlPanel /> : null}
+              </div>
+            )}
+          </div>
+        </aside>
+
+        <main className="min-w-0 space-y-3">
+          <GlassCard className="p-2">
+            <div className="flex flex-wrap items-center gap-2">
               {viewOptions.map((item) => (
                 <button
                   key={item.id}
                   type="button"
                   onClick={() => setActiveView(item.id)}
-                  className={`rounded-lg border p-3 text-left transition ${
+                  className={`rounded-lg border px-3 py-2 text-left transition ${
                     activeView === item.id
                       ? "border-cyan-300/45 bg-cyan-300/12 text-cyan-50"
                       : "border-slate-700/45 bg-slate-950/35 text-slate-300 hover:border-violet-300/40"
@@ -108,24 +124,25 @@ export function BodySandboxPage({ initialView = "body" }: { initialView?: Sandbo
                     <item.icon className="h-4 w-4" />
                     {item.label}
                   </span>
-                  <span className="mt-1 block text-xs leading-5 text-slate-500">{item.question}</span>
+                  <span className="hidden text-xs leading-5 text-slate-500 2xl:block">{item.question}</span>
                 </button>
               ))}
               {!interventionUnlocked ? (
-                <button type="button" onClick={showIntervention} className="rounded-lg border border-emerald-300/35 bg-emerald-300/10 p-3 text-left text-emerald-100 transition hover:border-emerald-200/60">
+                <button type="button" onClick={showIntervention} className="rounded-lg border border-emerald-300/35 bg-emerald-300/10 px-3 py-2 text-left text-emerald-100 transition hover:border-emerald-200/60">
                   <span className="flex items-center gap-2 text-sm font-semibold"><FlaskConical className="h-4 w-4" /> Test Intervention</span>
-                  <span className="mt-1 block text-xs leading-5 text-emerald-100/70">Open what-if perturbations</span>
                 </button>
               ) : null}
+              <button type="button" className="ml-auto rounded-lg border border-violet-300/25 bg-violet-300/[0.08] px-3 py-2 text-xs font-semibold text-violet-100 transition hover:border-violet-200/50" onClick={() => setBottomDrawerOpen((value) => !value)}>
+                {bottomDrawerOpen ? <ChevronDown className="mr-1 inline h-4 w-4" /> : <ChevronUp className="mr-1 inline h-4 w-4" />}
+                Output drawer
+              </button>
             </div>
           </GlassCard>
 
           {activeView === "body" ? (
             <BodyView
               activeSystems={activeSystems}
-              zoomLevel={zoomLevel}
               onToggleSystem={toggleSystem}
-              onSetZoom={setZoomLevel}
               beginner={beginner}
             />
           ) : null}
@@ -139,18 +156,8 @@ export function BodySandboxPage({ initialView = "body" }: { initialView?: Sandbo
           ) : null}
           {activeView === "intervention" ? <InterventionView onHide={() => setActiveView("body")} /> : null}
 
-          <SandboxOutputPanel />
-
-          {expert ? (
-            <GlassCard>
-              <p className="mb-3 text-sm font-semibold text-white">Expert layers and imports</p>
-              <BiologicalLayerControls />
-              <div className="mt-4">
-                <MolecularImportPanel />
-              </div>
-            </GlassCard>
-          ) : null}
-        </div>
+          <BottomDrawer open={bottomDrawerOpen} expert={expert} />
+        </main>
       </div>
     </div>
   );
@@ -158,48 +165,75 @@ export function BodySandboxPage({ initialView = "body" }: { initialView?: Sandbo
 
 function BodyView({
   activeSystems,
-  zoomLevel,
   onToggleSystem,
-  onSetZoom,
   beginner
 }: {
   activeSystems: BodySystemFilterId[];
-  zoomLevel: BodyZoomLevel;
   onToggleSystem: (id: BodySystemFilterId) => void;
-  onSetZoom: (level: BodyZoomLevel) => void;
   beginner: boolean;
 }) {
   return (
-    <div className="space-y-4">
-      <GlassCard>
-        <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="space-y-3">
+      <GlassCard className="p-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-cyan-200">Body</p>
-            <h2 className="mt-1 text-xl font-semibold text-white">Where is it happening?</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-400">The body is the anchor. Systems, regions, tissues and phenotypes are all projections of the active SandboxState.</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-cyan-200">Atlas Canvas</p>
+            <h2 className="text-base font-semibold text-white">Where is it happening?</h2>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {zoomLevels.map((level) => (
-              <button key={level.id} type="button" className={zoomLevel === level.id ? "nexus-button px-3 py-1.5 text-xs" : "nexus-button-secondary px-3 py-1.5 text-xs"} onClick={() => onSetZoom(level.id)}>
-                {level.label}
+          <div className="flex flex-wrap justify-end gap-2">
+            {systemFilters.map((system) => (
+              <button
+                key={system.id}
+                type="button"
+                className={activeSystems.includes(system.id) ? "nexus-button px-3 py-1.5 text-xs" : "nexus-button-secondary px-3 py-1.5 text-xs opacity-60"}
+                onClick={() => onToggleSystem(system.id)}
+              >
+                {system.label}
               </button>
             ))}
           </div>
         </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {systemFilters.map((system) => (
-            <button
-              key={system.id}
-              type="button"
-              className={activeSystems.includes(system.id) ? "nexus-button px-3 py-1.5 text-xs" : "nexus-button-secondary px-3 py-1.5 text-xs opacity-60"}
-              onClick={() => onToggleSystem(system.id)}
-            >
-              {system.label}
-            </button>
-          ))}
+      </GlassCard>
+      <WholeBodyVisualization activeSystems={activeSystems} compact={beginner} />
+    </div>
+  );
+}
+
+function BottomDrawer({ open, expert }: { open: boolean; expert: boolean }) {
+  if (!open) {
+    return (
+      <GlassCard className="p-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-violet-200">Bottom Drawer</p>
+            <p className="text-sm text-slate-300">Simulation output, reports, metadata and export tools are tucked away until needed.</p>
+          </div>
+          <span className="rounded-full border border-violet-300/25 bg-violet-300/10 px-3 py-1 text-xs text-violet-100">Collapsed</span>
         </div>
       </GlassCard>
-      <WholeBodyVisualization activeSystems={activeSystems} zoomLevel={zoomLevel} compact={beginner} />
+    );
+  }
+
+  return (
+    <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(24rem,0.75fr)]">
+      <SandboxOutputPanel />
+      {expert ? (
+        <GlassCard>
+          <p className="mb-3 text-sm font-semibold text-white">Expert layers and imports</p>
+          <BiologicalLayerControls />
+          <div className="mt-4">
+            <MolecularImportPanel />
+          </div>
+        </GlassCard>
+      ) : (
+        <GlassCard>
+          <p className="text-xs uppercase tracking-[0.18em] text-cyan-200">Export workspace</p>
+          <h3 className="mt-1 text-lg font-semibold text-white">Report-ready sandbox state</h3>
+          <p className="mt-2 text-sm leading-6 text-slate-400">
+            Reports and scenario exports are generated from the active SandboxState. Open the Reports module for full learner, educator, research, investor and scenario export formats.
+          </p>
+        </GlassCard>
+      )}
     </div>
   );
 }

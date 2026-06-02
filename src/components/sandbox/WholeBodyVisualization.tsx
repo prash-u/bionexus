@@ -1,6 +1,6 @@
 import { Activity, Brain, Info, Waves } from "lucide-react";
-import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import type { PointerEvent as ReactPointerEvent, ReactNode, WheelEvent as ReactWheelEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export type BodySystemFilterId =
   | "nervous"
@@ -24,8 +24,6 @@ export type BodySystemFilterId =
   | "pns"
   | "adipose";
 
-export type BodyZoomLevel = "wholeBody" | "whole-body" | "system" | "region" | "organs" | "systems" | "molecular";
-
 type BodyRegion = {
   id: BodySystemFilterId;
   filterId: BodySystemFilterId;
@@ -44,7 +42,6 @@ type WholeBodyVisualizationProps = {
   simulationResult?: any;
   result?: any;
   activeSystems?: BodySystemFilterId[];
-  zoomLevel?: BodyZoomLevel;
   className?: string;
   [key: string]: unknown;
 };
@@ -312,24 +309,55 @@ export function WholeBodyVisualization(props: WholeBodyVisualizationProps) {
   const [showLabels, setShowLabels] = useState(true);
   const [signalDensity, setSignalDensity] = useState<DensityLevel>("medium");
   const [selectedRegionId, setSelectedRegionId] = useState<BodySystemFilterId>("cns");
+  const [atlasViewport, setAtlasViewport] = useState({ zoom: 1, panX: 0, panY: 0 });
+  const [dragStart, setDragStart] = useState<{ clientX: number; clientY: number; panX: number; panY: number; zoom: number } | null>(null);
   const selectedRegion = regions.find((region) => region.id === selectedRegionId) ?? regions[0];
   const scores = useMemo(() => buildRegionScores(result, scenario, isHealthyBaseline), [result, scenario, isHealthyBaseline]);
   const activeSet = new Set<BodySystemFilterId>(enabledSystems);
   const selectedScore = scores[selectedRegion.id] ?? 18;
   const selectedActive = activeSet.size === 0 || activeSet.has(selectedRegion.id) || activeSet.has(selectedRegion.filterId);
   const activeOverlayDetails = atlasSystems.filter((system) => enabledSystems.includes(system.id));
-  const atlasTransform = atlasTransformForZoom(props.zoomLevel);
+  const atlasTransform = atlasTransformForViewport(atlasViewport);
   const toggleOverlay = (id: AtlasSystemId) => {
     setEnabledSystems((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
   };
+  useEffect(() => {
+    if (!props.activeSystems) return;
+    const nextSystems = props.activeSystems.filter((id): id is AtlasSystemId => atlasSystems.some((system) => system.id === id));
+    setEnabledSystems(nextSystems.length ? nextSystems : []);
+  }, [props.activeSystems]);
+  const updateZoom = (nextZoom: number) => setAtlasViewport((current) => ({ ...current, zoom: clamp(nextZoom, 0.72, 3) }));
+  const resetViewport = () => {
+    setAtlasViewport({ zoom: 1, panX: 0, panY: 0 });
+    setDragStart(null);
+  };
+  const handleWheel = (event: ReactWheelEvent<SVGSVGElement>) => {
+    event.preventDefault();
+    const delta = event.deltaY > 0 ? 0.92 : 1.08;
+    setAtlasViewport((current) => ({ ...current, zoom: clamp(current.zoom * delta, 0.72, 3) }));
+  };
+  const handlePointerDown = (event: ReactPointerEvent<SVGSVGElement>) => {
+    const target = event.target as Element;
+    if (target.closest("[data-region-anchor='true']")) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setDragStart({ clientX: event.clientX, clientY: event.clientY, panX: atlasViewport.panX, panY: atlasViewport.panY, zoom: atlasViewport.zoom });
+  };
+  const handlePointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
+    if (!dragStart) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const dx = ((event.clientX - dragStart.clientX) / Math.max(bounds.width, 1)) * 100;
+    const dy = ((event.clientY - dragStart.clientY) / Math.max(bounds.height, 1)) * 100;
+    setAtlasViewport((current) => ({ ...current, panX: dragStart.panX + dx, panY: dragStart.panY + dy }));
+  };
+  const handlePointerUp = () => setDragStart(null);
 
   return (
-    <section className={`rounded-xl border border-cyan-300/20 bg-slate-950/55 p-4 shadow-[0_0_40px_rgba(34,211,238,0.08)] ${props.className ?? ""}`}>
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+    <section className={`rounded-xl border border-cyan-300/20 bg-slate-950/55 p-3 shadow-[0_0_40px_rgba(34,211,238,0.08)] ${props.className ?? ""}`}>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-cyan-100">Whole Body Visualisation</p>
-          <h2 className="mt-1 text-2xl font-semibold text-white">{isHealthyBaseline ? "Healthy Baseline" : scenario?.title ?? "Body sandbox state"}</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
+          <h2 className="mt-1 text-xl font-semibold text-white">{isHealthyBaseline ? "Healthy Baseline" : scenario?.title ?? "Body sandbox state"}</h2>
+          <p className="mt-1 max-w-4xl text-sm leading-6 text-slate-300">
             {isHealthyBaseline
               ? "This reference model shows a stable body state with no selected disease or perturbation. Use the controls to adjust biological parameters or test an intervention."
               : "This body-scale map shows relative system changes from the selected scenario, assumptions and sandbox parameters."}
@@ -341,7 +369,7 @@ export function WholeBodyVisualization(props: WholeBodyVisualizationProps) {
         </div>
       </div>
 
-      <div className="mb-4 rounded-xl border border-white/10 bg-slate-950/55 p-3">
+      <div className="mb-3 rounded-xl border border-white/10 bg-slate-950/55 p-3">
         <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto]">
           <div>
             <p className="mb-2 text-xs uppercase tracking-[0.18em] text-slate-500">Systems</p>
@@ -381,9 +409,27 @@ export function WholeBodyVisualization(props: WholeBodyVisualizationProps) {
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(520px,1.25fr)_minmax(320px,0.75fr)]">
-        <div className="relative min-h-[720px] overflow-hidden rounded-xl border border-white/10 bg-[radial-gradient(circle_at_50%_18%,rgba(34,211,238,0.16),transparent_28%),linear-gradient(180deg,rgba(15,23,42,0.72),rgba(2,6,23,0.92))] p-4">
-          <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" role="img" aria-label="BioNexus whole-body atlas with biological system overlays">
+      <div className="grid gap-3 xl:grid-cols-[minmax(680px,1fr)_minmax(300px,360px)] 2xl:grid-cols-[minmax(840px,1fr)_minmax(320px,380px)]">
+        <div className="relative min-h-[760px] overflow-hidden rounded-xl border border-white/10 bg-[radial-gradient(circle_at_50%_18%,rgba(34,211,238,0.16),transparent_28%),linear-gradient(180deg,rgba(15,23,42,0.72),rgba(2,6,23,0.92))] p-4">
+          <div className="absolute left-4 top-4 z-10 flex items-center gap-2 rounded-full border border-cyan-300/20 bg-slate-950/75 p-1 text-xs text-cyan-50 shadow-[0_0_20px_rgba(34,211,238,0.12)] backdrop-blur">
+            <button type="button" className="rounded-full px-2.5 py-1 transition hover:bg-cyan-300/12" onClick={() => updateZoom(atlasViewport.zoom * 1.12)} aria-label="Zoom in">+</button>
+            <span className="min-w-12 text-center tabular-nums">{Math.round(atlasViewport.zoom * 100)}%</span>
+            <button type="button" className="rounded-full px-2.5 py-1 transition hover:bg-cyan-300/12" onClick={() => updateZoom(atlasViewport.zoom * 0.88)} aria-label="Zoom out">-</button>
+            <button type="button" className="rounded-full border border-white/10 px-2.5 py-1 text-slate-300 transition hover:border-cyan-300/35 hover:text-cyan-50" onClick={resetViewport}>Reset</button>
+          </div>
+          <svg
+            className={`absolute inset-0 h-full w-full ${dragStart ? "cursor-grabbing" : "cursor-grab"}`}
+            viewBox="0 0 100 100"
+            preserveAspectRatio="xMidYMid meet"
+            role="img"
+            aria-label="BioNexus whole-body atlas with biological system overlays"
+            onWheel={handleWheel}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+            style={{ touchAction: "none" }}
+          >
             <defs>
               <radialGradient id="bodyAtlasGlow" cx="50%" cy="42%" r="55%">
                 <stop offset="0%" stopColor="rgb(125 249 255)" stopOpacity="0.24" />
@@ -433,7 +479,7 @@ export function WholeBodyVisualization(props: WholeBodyVisualizationProps) {
           </svg>
         </div>
 
-        <aside className="space-y-4">
+        <aside className="max-h-[760px] space-y-3 overflow-y-auto pr-1">
           <div className="rounded-xl border border-white/10 bg-slate-950/65 p-4">
             <p className="text-xs uppercase tracking-[0.18em] text-slate-500">{isHealthyBaseline ? "Baseline system activity" : selectedRegion.plainLabel}</p>
             <div className="mt-3 flex items-center justify-between gap-3">
@@ -713,7 +759,7 @@ function RegionAnchorLayer({
         const score = scores[region.id] ?? 16;
         const isActive = activeSet.size === 0 || activeSet.has(region.id) || activeSet.has(region.filterId);
         const isSelected = region.id === selectedRegionId;
-        const radius = regionNodeRadius(score, isSelected);
+        const radius = regionNodeRadius(score);
         const color = regionColor(region.tone, score, isHealthyBaseline);
         const label = shouldShowRegionLabel(region, selectedRegionId, density, showLabels);
         const offset = labelOffset(region.id);
@@ -721,6 +767,7 @@ function RegionAnchorLayer({
         return (
           <g
             key={region.id}
+            data-region-anchor="true"
             opacity={isActive ? 1 : 0.38}
             role="button"
             tabIndex={0}
@@ -729,11 +776,20 @@ function RegionAnchorLayer({
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") onSelect(region.id);
             }}
-            style={{ cursor: "pointer" }}
+            style={{ cursor: "pointer", outline: "none" }}
           >
-            <circle cx={region.x} cy={region.y} r={radius + 1.7} fill={color} opacity={isSelected ? 0.26 : 0.12} filter="url(#atlasSystemGlow)" />
-            <circle cx={region.x} cy={region.y} r={radius} fill="rgba(2,6,23,0.78)" stroke={isSelected ? "#f8fafc" : color} strokeWidth={isSelected ? 0.42 : 0.24} />
-            <circle cx={region.x} cy={region.y} r={Math.max(0.7, radius - 0.9)} fill={color} opacity={isSelected ? 0.72 : 0.42} />
+            <circle cx={region.x} cy={region.y} r={radius + 0.75} fill={color} opacity={isSelected ? 0.16 : 0.1} filter="url(#atlasSystemGlow)" />
+            {isSelected ? (
+              <>
+                <circle cx={region.x} cy={region.y} r={radius + 1.05} fill="none" stroke="#67e8f9" strokeWidth="0.24" opacity="0.86" filter="url(#atlasSystemGlow)" />
+                <circle cx={region.x} cy={region.y} r={radius + 1.38} fill="none" stroke="#a78bfa" strokeWidth="0.14" opacity="0.48">
+                  <animate attributeName="r" values={`${radius + 1.05};${radius + 1.9};${radius + 1.05}`} dur="2.4s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="0.48;0.14;0.48" dur="2.4s" repeatCount="indefinite" />
+                </circle>
+              </>
+            ) : null}
+            <circle cx={region.x} cy={region.y} r={radius} fill="rgba(2,6,23,0.46)" stroke={isSelected ? "#67e8f9" : color} strokeWidth={isSelected ? 0.22 : 0.2} />
+            <circle cx={region.x} cy={region.y} r={Math.max(0.7, radius - 0.9)} fill={color} opacity={isSelected ? 0.62 : 0.42} />
             <text x={region.x} y={region.y + 0.55} textAnchor="middle" fill="#f8fafc" fontSize="1.55" fontWeight="800" pointerEvents="none">
               {Math.round(score)}
             </text>
@@ -762,13 +818,16 @@ function RegionAnchorLayer({
   );
 }
 
-function atlasTransformForZoom(zoomLevel?: BodyZoomLevel) {
-  const scale = zoomLevel === "molecular" ? 1.52 : zoomLevel === "region" ? 1.34 : zoomLevel === "system" || zoomLevel === "systems" ? 1.16 : 1;
-  return `translate(50 50) scale(${scale}) translate(-50 -50)`;
+function atlasTransformForViewport(viewport: { zoom: number; panX: number; panY: number }) {
+  return `translate(${viewport.panX} ${viewport.panY}) translate(50 50) scale(${viewport.zoom}) translate(-50 -50)`;
 }
 
-function regionNodeRadius(score: number, selected: boolean) {
-  return Number((1.65 + Math.min(1.45, score / 100) + (selected ? 0.42 : 0)).toFixed(2));
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function regionNodeRadius(score: number) {
+  return Number((1.65 + Math.min(1.45, score / 100)).toFixed(2));
 }
 
 function regionColor(tone: string, score: number, isHealthyBaseline: boolean) {
