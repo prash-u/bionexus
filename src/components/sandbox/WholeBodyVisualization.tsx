@@ -78,18 +78,18 @@ type SystemOverlay = {
 };
 
 const regions: BodyRegion[] = [
-  { id: "cns", filterId: "nervous", label: "Brain / CNS", plainLabel: "Brain and central nervous system", x: 50, y: 12, tone: "cyan", description: "Coordinates neural signalling, motor control and sensory integration.", molecules: ["dopamine", "BDNF", "alpha-synuclein"] },
-  { id: "eye", filterId: "ocular", label: "Eye / retina", plainLabel: "Eye and retina", x: 61, y: 18, tone: "violet", description: "Represents photoreceptor stress, retinal support and visual function signals.", molecules: ["RPE65", "rhodopsin", "AAV payload"] },
-  { id: "pns", filterId: "nervous", label: "Peripheral nerves", plainLabel: "Peripheral nervous system", x: 36, y: 31, tone: "blue", description: "Carries body-to-brain and brain-to-body signalling across peripheral circuits.", molecules: ["acetylcholine", "neurofilament", "ion channels"] },
-  { id: "heart", filterId: "cardiovascular", label: "Heart", plainLabel: "Heart", x: 45, y: 34, tone: "rose", description: "Tracks cardiovascular regulation, perfusion and autonomic state in the sandbox.", molecules: ["NO", "angiotensin II", "adrenaline"] },
-  { id: "lungs", filterId: "respiratory", label: "Lungs", plainLabel: "Lungs", x: 55, y: 33, tone: "sky", description: "Represents oxygen exchange, respiratory load and inflammatory signalling.", molecules: ["O2", "CO2", "IL-6"] },
-  { id: "immune", filterId: "immune", label: "Immune / blood", plainLabel: "Immune and blood system", x: 33, y: 44, tone: "emerald", description: "Summarises circulating immune activity, cytokine tone and inflammatory state.", molecules: ["IL-6", "TNF-alpha", "CRP"] },
-  { id: "liver", filterId: "endocrine", label: "Liver", plainLabel: "Liver", x: 43, y: 48, tone: "amber", description: "Handles metabolic buffering, detoxification and glucose/lipid regulation.", molecules: ["glucose", "insulin", "AMPK"] },
-  { id: "pancreas", filterId: "endocrine", label: "Pancreas", plainLabel: "Pancreas", x: 57, y: 51, tone: "teal", description: "Represents insulin secretion and glucose sensing in metabolic scenarios.", molecules: ["insulin", "GLP-1", "glucagon"] },
-  { id: "gut", filterId: "digestive", label: "Gut", plainLabel: "Gut", x: 50, y: 60, tone: "lime", description: "Models digestion, microbiome-adjacent signals and inflammatory exchange.", molecules: ["SCFA", "GLP-1", "bile acids"] },
-  { id: "kidney", filterId: "renal", label: "Kidney", plainLabel: "Kidney", x: 63, y: 61, tone: "cyan", description: "Tracks filtration, fluid balance and cardiovascular-metabolic coupling.", molecules: ["renin", "creatinine", "sodium"] },
-  { id: "adipose", filterId: "endocrine", label: "Adipose", plainLabel: "Adipose tissue", x: 36, y: 64, tone: "violet", description: "Represents stored-energy signalling and endocrine metabolic tone.", molecules: ["leptin", "adiponectin", "free fatty acids"] },
-  { id: "muscle", filterId: "musculoskeletal", label: "Skeletal muscle", plainLabel: "Skeletal muscle", x: 50, y: 78, tone: "blue", description: "Shows movement, glucose uptake, mitochondrial reserve and exercise adaptation.", molecules: ["ATP", "GLUT4", "myokines"] }
+  { id: "cns", filterId: "nervous", label: "Brain / CNS", plainLabel: "Brain and central nervous system", x: 50, y: 7, tone: "cyan", description: "Coordinates neural signalling, motor control and sensory integration.", molecules: ["dopamine", "BDNF", "alpha-synuclein"] },
+  { id: "eye", filterId: "ocular", label: "Eye / retina", plainLabel: "Eye and retina", x: 56, y: 9, tone: "violet", description: "Represents photoreceptor stress, retinal support and visual function signals.", molecules: ["RPE65", "rhodopsin", "AAV payload"] },
+  { id: "pns", filterId: "nervous", label: "Peripheral nerves", plainLabel: "Peripheral nervous system", x: 50, y: 27, tone: "blue", description: "Carries body-to-brain and brain-to-body signalling across peripheral circuits.", molecules: ["acetylcholine", "neurofilament", "ion channels"] },
+  { id: "heart", filterId: "cardiovascular", label: "Heart", plainLabel: "Heart", x: 48.5, y: 27.5, tone: "rose", description: "Tracks cardiovascular regulation, perfusion and autonomic state in the sandbox.", molecules: ["NO", "angiotensin II", "adrenaline"] },
+  { id: "lungs", filterId: "respiratory", label: "Lungs", plainLabel: "Lungs", x: 50, y: 23.2, tone: "sky", description: "Represents oxygen exchange, respiratory load and inflammatory signalling.", molecules: ["O2", "CO2", "IL-6"] },
+  { id: "immune", filterId: "immune", label: "Immune / blood", plainLabel: "Immune and blood system", x: 56, y: 37, tone: "emerald", description: "Summarises circulating immune activity, cytokine tone and inflammatory state.", molecules: ["IL-6", "TNF-alpha", "CRP"] },
+  { id: "liver", filterId: "endocrine", label: "Liver", plainLabel: "Liver", x: 46.4, y: 36.2, tone: "amber", description: "Handles metabolic buffering, detoxification and glucose/lipid regulation.", molecules: ["glucose", "insulin", "AMPK"] },
+  { id: "pancreas", filterId: "endocrine", label: "Pancreas", plainLabel: "Pancreas", x: 50.6, y: 39.3, tone: "teal", description: "Represents insulin secretion and glucose sensing in metabolic scenarios.", molecules: ["insulin", "GLP-1", "glucagon"] },
+  { id: "gut", filterId: "digestive", label: "Gut", plainLabel: "Gut", x: 50, y: 49, tone: "lime", description: "Models digestion, microbiome-adjacent signals and inflammatory exchange.", molecules: ["SCFA", "GLP-1", "bile acids"] },
+  { id: "kidney", filterId: "renal", label: "Kidney", plainLabel: "Kidney", x: 45, y: 42.7, tone: "cyan", description: "Tracks filtration, fluid balance and cardiovascular-metabolic coupling.", molecules: ["renin", "creatinine", "sodium"] },
+  { id: "adipose", filterId: "endocrine", label: "Adipose", plainLabel: "Adipose tissue", x: 51.4, y: 57.2, tone: "violet", description: "Represents stored-energy signalling and endocrine metabolic tone.", molecules: ["leptin", "adiponectin", "free fatty acids"] },
+  { id: "muscle", filterId: "musculoskeletal", label: "Skeletal muscle", plainLabel: "Skeletal muscle", x: 50, y: 82, tone: "blue", description: "Shows movement, glucose uptake, mitochondrial reserve and exercise adaptation.", molecules: ["ATP", "GLUT4", "myokines"] }
 ];
 
 const atlasSystems: SystemOverlay[] = [
@@ -103,16 +103,16 @@ const atlasSystems: SystemOverlay[] = [
     width: 0.52,
     particleShape: "spark",
     paths: [
-      { id: "brain-spine-muscle", d: "M50 12 C50 20 50 30 50 43 C50 55 50 66 50 78", label: "Brain -> spinal cord -> skeletal muscle", molecule: "action potential" },
-      { id: "brain-pns-organs", d: "M50 28 C39 34 34 45 36 64 M50 31 C62 38 62 51 57 51", label: "Autonomic branches", molecule: "acetylcholine" },
-      { id: "eye-visual-cortex", d: "M61 18 C58 14 54 12 50 12", label: "Retina -> visual cortex", molecule: "visual signal" },
-      { id: "gut-enteric", d: "M50 12 C43 28 43 48 50 60", label: "Gut-brain axis", molecule: "enteric signalling" }
+      { id: "brain-spine-muscle", d: "M50 7 C50 16 50 27 50 41 C50 55 50 70 50 82", label: "Brain -> spinal cord -> skeletal muscle", molecule: "action potential" },
+      { id: "brain-pns-organs", d: "M50 22 C44 30 46 37 46.4 36.2 M50 24 C55 30 52 39 50.6 39.3", label: "Autonomic branches", molecule: "acetylcholine" },
+      { id: "eye-visual-cortex", d: "M56 9 C54 8 52 7 50 7", label: "Retina -> visual cortex", molecule: "visual signal" },
+      { id: "gut-enteric", d: "M50 7 C47 22 47 35 50 49", label: "Gut-brain axis", molecule: "enteric signalling" }
     ],
     nodes: [
-      { x: 50, y: 12, label: "Brain" },
-      { x: 50, y: 43, label: "Spinal cord" },
-      { x: 36, y: 64, label: "PNS" },
-      { x: 50, y: 78, label: "Motor output" }
+      { x: 50, y: 7, label: "Brain" },
+      { x: 50, y: 27, label: "Spinal cord" },
+      { x: 50, y: 41, label: "PNS" },
+      { x: 50, y: 82, label: "Motor output" }
     ]
   },
   {
@@ -125,14 +125,14 @@ const atlasSystems: SystemOverlay[] = [
     width: 0.68,
     particleShape: "dot",
     paths: [
-      { id: "heart-lung", d: "M45 34 C49 28 54 28 55 33 C53 38 48 39 45 34", label: "Heart -> lungs -> heart", molecule: "O2 / CO2", stroke: "#38bdf8" },
-      { id: "heart-body-loop", d: "M45 34 C31 44 31 71 50 78 C70 70 66 44 45 34", label: "Heart -> body -> heart", molecule: "oxygenated blood", stroke: "#fb7185" },
-      { id: "portal-flow", d: "M50 60 C46 56 43 52 43 48 C45 42 45 38 45 34", label: "Portal/metabolic return", molecule: "nutrients" }
+      { id: "heart-lung", d: "M48.5 27.5 C51 22 54 21 50 23.2 C47 24 46 26 48.5 27.5", label: "Heart -> lungs -> heart", molecule: "O2 / CO2", stroke: "#38bdf8" },
+      { id: "heart-body-loop", d: "M48.5 27.5 C34 38 34 70 50 82 C66 70 63 38 48.5 27.5", label: "Heart -> body -> heart", molecule: "oxygenated blood", stroke: "#fb7185" },
+      { id: "portal-flow", d: "M50 49 C47 45 46 40 46.4 36.2 C47 32 48 29 48.5 27.5", label: "Portal/metabolic return", molecule: "nutrients" }
     ],
     nodes: [
-      { x: 45, y: 34, label: "Heart" },
-      { x: 55, y: 33, label: "Lungs" },
-      { x: 50, y: 78, label: "Body perfusion" }
+      { x: 48.5, y: 27.5, label: "Heart" },
+      { x: 50, y: 23.2, label: "Lungs" },
+      { x: 50, y: 82, label: "Body perfusion" }
     ]
   },
   {
@@ -145,14 +145,14 @@ const atlasSystems: SystemOverlay[] = [
     width: 0.6,
     particleShape: "wave",
     paths: [
-      { id: "airway", d: "M50 7 C50 15 51 24 55 33", label: "Mouth/nose -> trachea -> lungs", molecule: "O2" },
-      { id: "co2-return", d: "M55 33 C51 25 50 16 50 7", label: "CO2 movement", molecule: "CO2", stroke: "#c4b5fd", reverse: true },
-      { id: "lung-blood", d: "M55 33 C52 35 49 35 45 34", label: "Alveoli -> bloodstream", molecule: "gas exchange" }
+      { id: "airway", d: "M50 5 C50 12 50 18 50 23.2", label: "Mouth/nose -> trachea -> lungs", molecule: "O2" },
+      { id: "co2-return", d: "M50 23.2 C50 18 50 12 50 5", label: "CO2 movement", molecule: "CO2", stroke: "#c4b5fd", reverse: true },
+      { id: "lung-blood", d: "M50 23.2 C49 25 49 26 48.5 27.5", label: "Alveoli -> bloodstream", molecule: "gas exchange" }
     ],
     nodes: [
-      { x: 50, y: 7, label: "Airway" },
-      { x: 55, y: 33, label: "Lungs" },
-      { x: 45, y: 34, label: "Bloodstream" }
+      { x: 50, y: 5, label: "Airway" },
+      { x: 50, y: 23.2, label: "Lungs" },
+      { x: 48.5, y: 27.5, label: "Bloodstream" }
     ]
   },
   {
@@ -165,13 +165,13 @@ const atlasSystems: SystemOverlay[] = [
     width: 0.6,
     particleShape: "dot",
     paths: [
-      { id: "mouth-gut-liver", d: "M50 8 C48 28 50 42 50 60 C47 55 44 51 43 48", label: "Mouth -> gut -> liver", molecule: "nutrients" },
-      { id: "liver-blood", d: "M43 48 C44 42 45 38 45 34", label: "Liver -> bloodstream", molecule: "glucose/lipids" }
+      { id: "mouth-gut-liver", d: "M50 5 C49 20 51 35 50 49 C48 44 46.5 40 46.4 36.2", label: "Mouth -> gut -> liver", molecule: "nutrients" },
+      { id: "liver-blood", d: "M46.4 36.2 C47 32 48 29 48.5 27.5", label: "Liver -> bloodstream", molecule: "glucose/lipids" }
     ],
     nodes: [
-      { x: 50, y: 8, label: "Mouth" },
-      { x: 50, y: 60, label: "Small intestine" },
-      { x: 43, y: 48, label: "Liver" }
+      { x: 50, y: 5, label: "Mouth" },
+      { x: 50, y: 49, label: "Small intestine" },
+      { x: 46.4, y: 36.2, label: "Liver" }
     ]
   },
   {
@@ -184,14 +184,14 @@ const atlasSystems: SystemOverlay[] = [
     width: 0.56,
     particleShape: "wave",
     paths: [
-      { id: "pituitary-thyroid-adrenal", d: "M50 13 C48 22 47 31 45 43 C43 49 42 56 36 64", label: "Pituitary -> thyroid/adrenal/adipose", molecule: "cortisol / thyroid hormones" },
-      { id: "pancreas-muscle", d: "M57 51 C58 64 55 73 50 78", label: "Pancreas -> muscle", molecule: "insulin" },
-      { id: "pancreas-liver", d: "M57 51 C52 48 47 47 43 48", label: "Pancreas -> liver", molecule: "insulin / glucagon" }
+      { id: "pituitary-thyroid-adrenal", d: "M50 7 C50 16 50 23 49 31 C47 42 49 52 51.4 57.2", label: "Pituitary -> thyroid/adrenal/adipose", molecule: "cortisol / thyroid hormones" },
+      { id: "pancreas-muscle", d: "M50.6 39.3 C53 53 53 68 50 82", label: "Pancreas -> muscle", molecule: "insulin" },
+      { id: "pancreas-liver", d: "M50.6 39.3 C49 37.5 47.5 36.5 46.4 36.2", label: "Pancreas -> liver", molecule: "insulin / glucagon" }
     ],
     nodes: [
-      { x: 50, y: 13, label: "Pituitary" },
-      { x: 57, y: 51, label: "Pancreas", molecule: "insulin" },
-      { x: 36, y: 64, label: "Adipose", molecule: "leptin" }
+      { x: 50, y: 7, label: "Pituitary" },
+      { x: 50.6, y: 39.3, label: "Pancreas", molecule: "insulin" },
+      { x: 51.4, y: 57.2, label: "Adipose", molecule: "leptin" }
     ]
   },
   {
@@ -204,14 +204,14 @@ const atlasSystems: SystemOverlay[] = [
     width: 0.58,
     particleShape: "cell",
     paths: [
-      { id: "lymph-chain", d: "M33 44 C38 39 45 38 55 33 C59 40 57 49 50 60 C45 58 38 53 33 44", label: "Lymph and blood signalling", molecule: "IL6 / TNF" },
-      { id: "marrow-blood", d: "M50 78 C46 66 41 54 33 44", label: "Bone marrow -> blood", molecule: "immune cells" },
-      { id: "gut-immune", d: "M50 60 C43 57 36 52 33 44", label: "Gut immune interface", molecule: "cytokines" }
+      { id: "lymph-chain", d: "M56 37 C51 31 48 28 50 23.2 C58 31 57 41 50 49 C47 45 51 39 56 37", label: "Lymph and blood signalling", molecule: "IL6 / TNF" },
+      { id: "marrow-blood", d: "M48 70 C47 58 50 46 56 37", label: "Bone marrow -> blood", molecule: "immune cells" },
+      { id: "gut-immune", d: "M50 49 C52 45 54 41 56 37", label: "Gut immune interface", molecule: "cytokines" }
     ],
     nodes: [
-      { x: 33, y: 44, label: "Lymph/blood", molecule: "IL6" },
-      { x: 50, y: 78, label: "Bone marrow" },
-      { x: 50, y: 60, label: "Gut interface" }
+      { x: 56, y: 37, label: "Lymph/blood", molecule: "IL6" },
+      { x: 48, y: 70, label: "Bone marrow" },
+      { x: 50, y: 49, label: "Gut interface" }
     ]
   },
   {
@@ -224,14 +224,14 @@ const atlasSystems: SystemOverlay[] = [
     width: 0.72,
     particleShape: "triangle",
     paths: [
-      { id: "motor-output", d: "M50 43 C43 54 38 67 50 78 C61 67 57 54 50 43", label: "Motor command -> force output", molecule: "ATP / myokines" },
-      { id: "upper-limb-force", d: "M50 34 C34 42 24 58 22 72", label: "Upper limb force", molecule: "actin/myosin" },
-      { id: "lower-limb-force", d: "M50 78 C43 86 39 93 36 98 M50 78 C57 86 61 93 64 98", label: "Lower limb force", molecule: "ATP" }
+      { id: "motor-output", d: "M50 27 C44 42 42 62 50 82 C58 62 56 42 50 27", label: "Motor command -> force output", molecule: "ATP / myokines" },
+      { id: "upper-limb-force", d: "M50 27 C39 34 31 42 28 52", label: "Upper limb force", molecule: "actin/myosin" },
+      { id: "lower-limb-force", d: "M50 82 C45 88 43 94 42 99 M50 82 C55 88 57 94 58 99", label: "Lower limb force", molecule: "ATP" }
     ],
     nodes: [
-      { x: 50, y: 78, label: "Skeletal muscle", molecule: "ATP" },
-      { x: 22, y: 72, label: "Upper limb" },
-      { x: 64, y: 98, label: "Lower limb" }
+      { x: 50, y: 82, label: "Skeletal muscle", molecule: "ATP" },
+      { x: 28, y: 52, label: "Upper limb" },
+      { x: 58, y: 99, label: "Lower limb" }
     ]
   },
   {
@@ -244,14 +244,14 @@ const atlasSystems: SystemOverlay[] = [
     width: 0.58,
     particleShape: "dot",
     paths: [
-      { id: "blood-kidney", d: "M45 34 C54 44 62 52 63 61", label: "Bloodstream -> kidneys", molecule: "filtrate" },
-      { id: "kidney-bladder", d: "M63 61 C58 70 54 78 50 86", label: "Kidneys -> bladder", molecule: "fluid balance" },
-      { id: "kidney-heart", d: "M63 61 C58 49 51 40 45 34", label: "Fluid regulation feedback", molecule: "renin/sodium", reverse: true }
+      { id: "blood-kidney", d: "M48.5 27.5 C47 34 45 39 45 42.7", label: "Bloodstream -> kidneys", molecule: "filtrate" },
+      { id: "kidney-bladder", d: "M45 42.7 C47 50 49 57 50 62", label: "Kidneys -> bladder", molecule: "fluid balance" },
+      { id: "kidney-heart", d: "M45 42.7 C45 35 46 30 48.5 27.5", label: "Fluid regulation feedback", molecule: "renin/sodium", reverse: true }
     ],
     nodes: [
-      { x: 63, y: 61, label: "Kidney", molecule: "renin" },
-      { x: 50, y: 86, label: "Bladder" },
-      { x: 45, y: 34, label: "Blood pressure loop" }
+      { x: 45, y: 42.7, label: "Kidney", molecule: "renin" },
+      { x: 50, y: 62, label: "Bladder" },
+      { x: 48.5, y: 27.5, label: "Fluid feedback" }
     ]
   },
   {
@@ -264,13 +264,13 @@ const atlasSystems: SystemOverlay[] = [
     width: 0.64,
     particleShape: "spark",
     paths: [
-      { id: "retina-optic-cortex", d: "M61 18 C58 16 54 14 50 12", label: "Retina -> optic nerve -> visual cortex", molecule: "phototransduction" },
-      { id: "retina-support", d: "M61 18 C57 28 56 40 57 51", label: "Retina support context", molecule: "RPE65 / photoreceptors" }
+      { id: "retina-optic-cortex", d: "M56 9 C54 8 52 7 50 7", label: "Retina -> optic nerve -> visual cortex", molecule: "phototransduction" },
+      { id: "retina-support", d: "M56 9 C55 18 53 29 50.6 39.3", label: "Retina support context", molecule: "RPE65 / photoreceptors" }
     ],
     nodes: [
-      { x: 61, y: 18, label: "Retina", molecule: "RPE65" },
-      { x: 55, y: 15, label: "Optic nerve" },
-      { x: 50, y: 12, label: "Visual cortex" }
+      { x: 56, y: 9, label: "Retina", molecule: "RPE65" },
+      { x: 53, y: 8, label: "Optic nerve" },
+      { x: 50, y: 7, label: "Visual cortex" }
     ]
   }
 ];
@@ -381,8 +381,16 @@ export function WholeBodyVisualization(props: WholeBodyVisualizationProps) {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(520px,1.25fr)_minmax(320px,0.75fr)]">
-        <div className="relative min-h-[620px] overflow-hidden rounded-xl border border-white/10 bg-[radial-gradient(circle_at_50%_18%,rgba(34,211,238,0.16),transparent_28%),linear-gradient(180deg,rgba(15,23,42,0.72),rgba(2,6,23,0.92))] p-4">
-          <BodySilhouette />
+        <div className="relative min-h-[720px] overflow-hidden rounded-xl border border-white/10 bg-[radial-gradient(circle_at_50%_18%,rgba(34,211,238,0.16),transparent_28%),linear-gradient(180deg,rgba(15,23,42,0.72),rgba(2,6,23,0.92))] p-4">
+          <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center" aria-hidden="true">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(125,249,255,0.18),transparent_42%)]" />
+            <img
+              src="/anatomical-body.svg"
+              alt=""
+              className="relative h-full w-full object-contain opacity-90 drop-shadow-[0_28px_70px_rgba(34,211,238,0.22)]"
+              draggable={false}
+            />
+          </div>
           <SystemOverlayLayer systems={activeOverlayDetails} density={signalDensity} showLabels={showLabels} showMolecules={showMolecules && mode !== "beginner"} mode={mode} />
           <div className="absolute inset-0">
             {regions.map((region) => {
@@ -516,6 +524,7 @@ function SystemOverlayLayer({
 }) {
   const particlesPerPath = densityOptions.find((option) => option.id === density)?.particles ?? 2;
   const labelMode = showLabels && mode !== "beginner";
+  const detailedPathLabels = labelMode && (density === "high" || density === "maximum" || systems.length <= 3);
   const simpleLabels = showLabels && mode === "beginner";
 
   return (
@@ -566,7 +575,7 @@ function SystemOverlayLayer({
                     reverse={path.reverse}
                   />
                 ))}
-                {labelMode && path.label ? (
+                {detailedPathLabels && path.label ? (
                   <text x={pathLabelPosition(path.d).x} y={pathLabelPosition(path.d).y} fill={stroke} fontSize="2.15" fontWeight="700" opacity="0.72">
                     {path.label}
                   </text>
@@ -678,26 +687,6 @@ function pathLabelPosition(d: string) {
   const pairs = [];
   for (let index = 0; index < matches.length - 1; index += 2) pairs.push({ x: matches[index], y: matches[index + 1] });
   return pairs[Math.floor(pairs.length / 2)] ?? pairs[0];
-}
-
-function BodySilhouette() {
-  return (
-    <svg className="absolute left-1/2 top-6 h-[560px] w-[360px] -translate-x-1/2 text-cyan-100/18" viewBox="0 0 360 560" aria-hidden="true">
-      <defs>
-        <linearGradient id="bodyGlow" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0%" stopColor="rgb(125 249 255)" stopOpacity="0.34" />
-          <stop offset="55%" stopColor="rgb(139 92 246)" stopOpacity="0.2" />
-          <stop offset="100%" stopColor="rgb(16 185 129)" stopOpacity="0.22" />
-        </linearGradient>
-      </defs>
-      <circle cx="180" cy="54" r="42" fill="url(#bodyGlow)" stroke="currentColor" strokeWidth="2" />
-      <path d="M128 118 C145 99 216 99 233 118 C251 145 249 196 230 228 L216 318 L244 512 L206 512 L180 364 L154 512 L116 512 L144 318 L130 228 C111 194 109 146 128 118Z" fill="url(#bodyGlow)" stroke="currentColor" strokeWidth="2" />
-      <path d="M126 142 C78 190 66 267 61 348" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="10" />
-      <path d="M234 142 C282 190 294 267 299 348" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="10" />
-      <path d="M143 238 C166 254 195 254 219 238" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
-      <path d="M150 306 C170 319 198 319 218 306" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
-    </svg>
-  );
 }
 
 function MolecularEdges({ isHealthyBaseline, selectedRegion }: { isHealthyBaseline: boolean; selectedRegion: BodyRegion }) {
