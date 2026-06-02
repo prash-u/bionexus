@@ -382,15 +382,33 @@ export function WholeBodyVisualization(props: WholeBodyVisualizationProps) {
 
       <div className="grid gap-4 xl:grid-cols-[minmax(520px,1.25fr)_minmax(320px,0.75fr)]">
         <div className="relative min-h-[720px] overflow-hidden rounded-xl border border-white/10 bg-[radial-gradient(circle_at_50%_18%,rgba(34,211,238,0.16),transparent_28%),linear-gradient(180deg,rgba(15,23,42,0.72),rgba(2,6,23,0.92))] p-4">
-          <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center" aria-hidden="true">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(125,249,255,0.18),transparent_42%)]" />
-            <img
-              src="/anatomical-body.svg"
-              alt=""
-              className="relative h-full w-full object-contain opacity-90 drop-shadow-[0_28px_70px_rgba(34,211,238,0.22)]"
-              draggable={false}
+          <svg className="pointer-events-none absolute inset-0 z-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <radialGradient id="bodyAtlasGlow" cx="50%" cy="42%" r="55%">
+                <stop offset="0%" stopColor="rgb(125 249 255)" stopOpacity="0.24" />
+                <stop offset="55%" stopColor="rgb(34 211 238)" stopOpacity="0.08" />
+                <stop offset="100%" stopColor="rgb(2 6 23)" stopOpacity="0" />
+              </radialGradient>
+              <filter id="bodyAtlasDropGlow" x="-40%" y="-20%" width="180%" height="150%">
+                <feGaussianBlur stdDeviation="1.8" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            <rect x="0" y="0" width="100" height="100" fill="url(#bodyAtlasGlow)" />
+            <image
+              href="/anatomogram-human.svg"
+              x="23"
+              y="0"
+              width="54"
+              height="100"
+              opacity="0.9"
+              preserveAspectRatio="xMidYMid meet"
+              filter="url(#bodyAtlasDropGlow)"
             />
-          </div>
+          </svg>
           <SystemOverlayLayer systems={activeOverlayDetails} density={signalDensity} showLabels={showLabels} showMolecules={showMolecules && mode !== "beginner"} mode={mode} />
           <div className="absolute inset-0">
             {regions.map((region) => {
