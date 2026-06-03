@@ -473,6 +473,7 @@ export function WholeBodyVisualization(props: WholeBodyVisualizationProps) {
                 scores={scores}
                 selectedRegionId={selectedRegion.id}
                 showLabels={showLabels}
+                showScores={showRawDetails}
                 onSelect={setSelectedRegionId}
               />
             </g>
@@ -742,6 +743,7 @@ function RegionAnchorLayer({
   scores,
   selectedRegionId,
   showLabels,
+  showScores,
   onSelect
 }: {
   activeSet: Set<BodySystemFilterId>;
@@ -751,6 +753,7 @@ function RegionAnchorLayer({
   scores: Record<BodySystemFilterId, number>;
   selectedRegionId: BodySystemFilterId;
   showLabels: boolean;
+  showScores: boolean;
   onSelect: (id: BodySystemFilterId) => void;
 }) {
   return (
@@ -790,9 +793,11 @@ function RegionAnchorLayer({
             ) : null}
             <circle cx={region.x} cy={region.y} r={radius} fill="rgba(2,6,23,0.46)" stroke={isSelected ? "#67e8f9" : color} strokeWidth={isSelected ? 0.22 : 0.2} />
             <circle cx={region.x} cy={region.y} r={Math.max(0.7, radius - 0.9)} fill={color} opacity={isSelected ? 0.62 : 0.42} />
-            <text x={region.x} y={region.y + 0.55} textAnchor="middle" fill="#f8fafc" fontSize="1.55" fontWeight="800" pointerEvents="none">
-              {Math.round(score)}
-            </text>
+            {showScores ? (
+              <text x={region.x} y={region.y + 0.55} textAnchor="middle" fill="#f8fafc" fontSize="1.55" fontWeight="800" pointerEvents="none">
+                {Math.round(score)}
+              </text>
+            ) : null}
             {label ? (
               <g pointerEvents="none">
                 <path d={`M ${region.x} ${region.y} L ${region.x + offset.x * 0.72} ${region.y + offset.y * 0.72}`} stroke={color} strokeWidth="0.18" strokeDasharray="0.8 1.2" opacity="0.58" />

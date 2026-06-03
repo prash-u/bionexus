@@ -19,14 +19,104 @@ import type {
 import { rankNetworkGenes } from "@/lib/network/networkPulseImport";
 
 export const parameterControls: ParameterControlDefinition[] = [
-  { id: "inflammation", label: "Inflammation", value: 0.28, lowLabel: "Low", highLabel: "High" },
-  { id: "insulinSensitivity", label: "Insulin Sensitivity", value: 0.72, lowLabel: "Low", highLabel: "High", inverse: true },
-  { id: "oxidativeStress", label: "Oxidative Stress", value: 0.3, lowLabel: "Low", highLabel: "High" },
-  { id: "mitochondrialFunction", label: "Mitochondrial Function", value: 0.74, lowLabel: "Low", highLabel: "High", inverse: true },
-  { id: "metabolicLoad", label: "Metabolic Load", value: 0.32, lowLabel: "Low", highLabel: "High" },
-  { id: "neuralSynchrony", label: "Neural Synchrony", value: 0.42, lowLabel: "Stable", highLabel: "Oscillatory" },
-  { id: "immuneActivation", label: "Immune Activation", value: 0.34, lowLabel: "Quiet", highLabel: "Activated" },
-  { id: "retinalStress", label: "Retinal Stress", value: 0.24, lowLabel: "Low", highLabel: "High" }
+  {
+    id: "neuralSynchrony",
+    label: "Neural Synchrony",
+    value: 0.42,
+    lowLabel: "Stable",
+    highLabel: "Oscillatory",
+    group: "neural",
+    description: "Adjusts the coherence of neural firing and motor-circuit signalling in the sandbox.",
+    realWorldContext: "Exploratory analogues include EEG rhythm bands, tremor frequency observations and motor-circuit physiology models.",
+    lowDescriptor: "Stable signalling",
+    highDescriptor: "High synchrony / oscillatory"
+  },
+  {
+    id: "inflammation",
+    label: "Inflammatory Tone",
+    value: 0.28,
+    lowLabel: "Low",
+    highLabel: "High",
+    group: "immune",
+    description: "Sets the background inflammatory load that can influence tissues, vessels, immune state and metabolism.",
+    realWorldContext: "Real-world context might include CRP, IL-6, TNF-alpha or other inflammatory-marker panels.",
+    lowDescriptor: "Low systemic tone",
+    highDescriptor: "High cytokine tone"
+  },
+  {
+    id: "immuneActivation",
+    label: "Immune Activation",
+    value: 0.34,
+    lowLabel: "Quiet",
+    highLabel: "Activated",
+    group: "immune",
+    description: "Controls immune-system activation and circulating immune signalling in the model.",
+    realWorldContext: "Exploratory references include blood counts, cytokine panels, immune-cell activation markers and infection/inflammation context.",
+    lowDescriptor: "Quiet surveillance",
+    highDescriptor: "Activated immune state"
+  },
+  {
+    id: "insulinSensitivity",
+    label: "Insulin Sensitivity",
+    value: 0.72,
+    lowLabel: "Resistant",
+    highLabel: "Sensitive",
+    group: "metabolic",
+    description: "Adjusts how responsive liver, muscle and adipose tissues are to insulin signalling.",
+    realWorldContext: "Real-world tests can include fasting glucose/insulin, HOMA-IR, HbA1c or an oral glucose tolerance test.",
+    lowDescriptor: "Low sensitivity / insulin resistant",
+    highDescriptor: "High sensitivity / glucose uptake",
+    inverse: true
+  },
+  {
+    id: "metabolicLoad",
+    label: "Metabolic Load",
+    value: 0.32,
+    lowLabel: "Low",
+    highLabel: "High",
+    group: "metabolic",
+    description: "Represents carbohydrate/lipid handling pressure across liver, pancreas, adipose tissue and skeletal muscle.",
+    realWorldContext: "Contextual tests might include HbA1c, lipid panel, fasting glucose, OGTT or continuous glucose trends.",
+    lowDescriptor: "Low energy pressure",
+    highDescriptor: "High glucose/lipid load"
+  },
+  {
+    id: "mitochondrialFunction",
+    label: "Mitochondrial Reserve",
+    value: 0.74,
+    lowLabel: "Low",
+    highLabel: "High",
+    group: "cellular",
+    description: "Adjusts cellular energy reserve and stress resilience across tissues.",
+    realWorldContext: "Research context can include lactate, exercise tolerance, oxygen-use assays or mitochondrial respiration studies.",
+    lowDescriptor: "Low reserve",
+    highDescriptor: "High reserve",
+    inverse: true
+  },
+  {
+    id: "oxidativeStress",
+    label: "Oxidative Stress",
+    value: 0.3,
+    lowLabel: "Low",
+    highLabel: "High",
+    group: "cellular",
+    description: "Controls reactive-stress pressure affecting neural, retinal, cardiovascular and metabolic tissues.",
+    realWorldContext: "Research context can include oxidative-damage markers, antioxidant capacity assays or mitochondrial stress models.",
+    lowDescriptor: "Low stress",
+    highDescriptor: "High reactive pressure"
+  },
+  {
+    id: "retinalStress",
+    label: "Retinal Stress",
+    value: 0.24,
+    lowLabel: "Low",
+    highLabel: "High",
+    group: "ocular",
+    description: "Adjusts visual-system and photoreceptor stress used in ocular scenario exploration.",
+    realWorldContext: "Exploratory context might include OCT, visual-field testing, ERG or genetic retinal-disease mechanism studies.",
+    lowDescriptor: "Low photoreceptor stress",
+    highDescriptor: "High retinal stress"
+  }
 ];
 
 export const defaultParameters = Object.fromEntries(parameterControls.map((control) => [control.id, control.value])) as Record<ParameterControlId, number>;

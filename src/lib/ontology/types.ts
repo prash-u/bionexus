@@ -301,6 +301,11 @@ export interface ParameterControlDefinition {
   value: number;
   lowLabel: string;
   highLabel: string;
+  group?: "neural" | "immune" | "metabolic" | "ocular" | "cellular";
+  description?: string;
+  realWorldContext?: string;
+  lowDescriptor?: string;
+  highDescriptor?: string;
   inverse?: boolean;
 }
 
