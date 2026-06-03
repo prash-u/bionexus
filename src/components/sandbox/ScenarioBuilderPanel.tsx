@@ -1,17 +1,20 @@
-import { ArrowDown, ArrowUp, ClipboardList, SlidersHorizontal, Sparkles } from "lucide-react";
+import { ArrowDown, ArrowUp, GitBranch, Search, SlidersHorizontal, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ComplexitySelector } from "@/components/ui/ComplexitySelector";
 import { GlassCard } from "@/components/ui/GlassCard";
 import type { BiologicalLayer, ParameterControlId } from "@/lib/ontology/types";
 import { useSandbox } from "@/lib/sandbox/sandboxState";
 
-const dataLayerOptions: Array<{ id: BiologicalLayer; label: string; example: string }> = [
-  { id: "genes", label: "Gene / variant", example: "SNCA, GBA1, INSR, RPE65" },
-  { id: "proteins", label: "Protein / biomarker", example: "alpha-synuclein, insulin receptor, IL-6" },
-  { id: "pathways", label: "Pathway signal", example: "mitophagy, insulin signalling, cytokine signalling" },
-  { id: "tissues", label: "Tissue or organ change", example: "retinal stress, liver metabolic load, basal ganglia loop" },
-  { id: "phenotypes", label: "Observed phenotype", example: "tremor, glucose pressure, inflammation, visual function" },
-  { id: "interventions", label: "Intervention or exposure", example: "DBS, exercise, sleep disruption, gene delivery" }
+type StartingPointLayer = BiologicalLayer | "scenario";
+
+const dataLayerOptions: Array<{ id: StartingPointLayer; label: string; example: string }> = [
+  { id: "scenario", label: "Scenario", example: "metabolic dysfunction, retinal degeneration, inflammatory activation" },
+  { id: "genes", label: "Gene", example: "SNCA, GBA1, INSR, RPE65, RPGR" },
+  { id: "proteins", label: "Protein", example: "alpha-synuclein, insulin receptor, rhodopsin" },
+  { id: "pathways", label: "Pathway", example: "mitophagy, insulin signalling, cytokine signalling" },
+  { id: "organs", label: "Organ", example: "retina, liver, pancreas, brain, muscle" },
+  { id: "phenotypes", label: "Phenotype", example: "tremor, glucose pressure, inflammation, vision loss" },
+  { id: "interventions", label: "Intervention", example: "DBS, exercise, sleep disruption, gene delivery" }
 ];
 
 const evidencePatterns: Array<{
@@ -101,7 +104,7 @@ export function ScenarioBuilderPanel({ showInterventions = false }: { showInterv
   const activePredispositions = new Set(sandbox.scenario.predispositions.map((item) => item.id));
   const activePerturbations = new Set(sandbox.scenario.perturbations.map((item) => item.id));
   const activeInterventions = new Set(sandbox.scenario.interventions.map((item) => item.id));
-  const [knownLayer, setKnownLayer] = useState<BiologicalLayer>("phenotypes");
+  const [knownLayer, setKnownLayer] = useState<StartingPointLayer>("phenotypes");
   const [exampleText, setExampleText] = useState("Observed tremor + motor slowing after neural-circuit perturbation");
   const isHealthyBaseline = sandbox.activeScenarioId === "healthy-baseline";
   const readerMode = getReaderMode();
@@ -112,8 +115,8 @@ export function ScenarioBuilderPanel({ showInterventions = false }: { showInterv
   const selectedLayer = dataLayerOptions.find((item) => item.id === knownLayer) ?? dataLayerOptions[0];
   const extrapolation = useMemo(() => buildExtrapolationCopy(knownLayer), [knownLayer]);
   const patterns = isHealthyBaseline ? healthyPatterns : evidencePatterns;
-  const upstreamLabel = showMechanisticTrace ? "Trace upstream" : "Possible upstream factors";
-  const downstreamLabel = showMechanisticTrace ? "Trace downstream" : "Possible downstream effects";
+  const upstreamLabel = showMechanisticTrace ? "Trace backward" : "What could explain this?";
+  const downstreamLabel = showMechanisticTrace ? "Trace forward" : "What could this affect?";
 
   const applyPattern = (pattern: (typeof evidencePatterns)[number]) => {
     applySandboxTuning({
@@ -129,22 +132,25 @@ export function ScenarioBuilderPanel({ showInterventions = false }: { showInterv
     <GlassCard className="h-full">
       <div className="mb-4 flex items-center gap-2">
         <SlidersHorizontal className="h-5 w-5 text-cyan-200" />
-        <h2 className="text-lg font-semibold text-white">Scenario builder</h2>
+        <div>
+          <h2 className="text-lg font-semibold text-white">Biological Starting Point</h2>
+          <p className="text-xs leading-5 text-slate-400">Start anywhere, then trace forward or backward through biology.</p>
+        </div>
       </div>
       <div className="space-y-5">
         <div className="rounded-lg border border-cyan-300/20 bg-cyan-300/[0.055] p-4">
           <div className="flex items-center gap-2">
-            <ClipboardList className="h-4 w-4 text-cyan-200" />
-            <p className="text-xs uppercase tracking-[0.18em] text-cyan-100">Fit the sandbox to an example</p>
+            <Search className="h-4 w-4 text-cyan-200" />
+            <p className="text-xs uppercase tracking-[0.18em] text-cyan-100">What are you starting from?</p>
           </div>
           <label className="mt-3 block text-sm text-slate-300">
-            <span className="mb-2 block text-xs uppercase tracking-[0.16em] text-slate-500">What kind of data do you have?</span>
-            <select className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2" value={knownLayer} onChange={(event) => setKnownLayer(event.target.value as BiologicalLayer)}>
+            <span className="mb-2 block text-xs uppercase tracking-[0.16em] text-slate-500">Starting layer</span>
+            <select className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2" value={knownLayer} onChange={(event) => setKnownLayer(event.target.value as StartingPointLayer)}>
               {dataLayerOptions.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
             </select>
           </label>
           <label className="mt-3 block text-sm text-slate-300">
-            <span className="mb-2 block text-xs uppercase tracking-[0.16em] text-slate-500">User example / condition being tested</span>
+            <span className="mb-2 block text-xs uppercase tracking-[0.16em] text-slate-500">Entity, observation or example</span>
             <textarea
               className="min-h-24 w-full resize-y rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm leading-6"
               value={exampleText}
@@ -155,28 +161,11 @@ export function ScenarioBuilderPanel({ showInterventions = false }: { showInterv
           <p className="mt-2 text-xs leading-5 text-slate-400">Example hints: {selectedLayer.example}</p>
         </div>
 
-        <div>
-          <p className="mb-2 text-xs uppercase tracking-[0.18em] text-slate-500">Adjust model state</p>
-          <div className="grid gap-2">
-            {patterns.map((pattern) => (
-              <button
-                key={pattern.id}
-                type="button"
-                className="rounded-md border border-slate-700/50 bg-slate-950/35 p-3 text-left transition hover:border-cyan-300/45 hover:bg-cyan-300/[0.06]"
-                onClick={() => applyPattern(pattern)}
-              >
-                <span className="flex items-center gap-2 text-sm font-semibold text-white">
-                  <Sparkles className="h-3.5 w-3.5 text-violet-200" />
-                  {pattern.label}
-                </span>
-                <span className="mt-1 block text-xs leading-5 text-slate-400">{pattern.description}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div className="rounded-lg border border-violet-300/20 bg-violet-300/[0.055] p-4">
-          <p className="text-xs uppercase tracking-[0.18em] text-violet-100">Knowledge Path</p>
+          <div className="flex items-center gap-2">
+            <GitBranch className="h-4 w-4 text-violet-100" />
+            <p className="text-xs uppercase tracking-[0.18em] text-violet-100">Reasoning direction</p>
+          </div>
           <div className="mt-3 grid gap-3">
             <div className="rounded-md border border-white/10 bg-slate-950/35 p-3">
               <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-cyan-100">
@@ -187,7 +176,7 @@ export function ScenarioBuilderPanel({ showInterventions = false }: { showInterv
                 {isHealthyBaseline && !showMechanisticTrace ? (
                   <p>No dominant disruption selected.</p>
                 ) : topBacktrace.map((candidate) => (
-                  <p key={candidate.id}><strong className="text-white">{candidate.geneSymbol}</strong> via {candidate.linkedPathways.slice(0, 2).join(" / ")}</p>
+                  <p key={candidate.id}><strong className="text-white">{candidate.geneSymbol}</strong> traces to {candidate.linkedPathways.slice(0, 2).join(" / ")}</p>
                 ))}
               </div>
             </div>
@@ -204,6 +193,26 @@ export function ScenarioBuilderPanel({ showInterventions = false }: { showInterv
             </div>
           </div>
           <p className="mt-3 text-xs leading-5 text-slate-500">{extrapolation}</p>
+        </div>
+
+        <div>
+          <p className="mb-2 text-xs uppercase tracking-[0.18em] text-slate-500">Reasoning templates</p>
+          <div className="grid gap-2">
+            {patterns.map((pattern) => (
+              <button
+                key={pattern.id}
+                type="button"
+                className="rounded-md border border-slate-700/50 bg-slate-950/35 p-3 text-left transition hover:border-cyan-300/45 hover:bg-cyan-300/[0.06]"
+                onClick={() => applyPattern(pattern)}
+              >
+                <span className="flex items-center gap-2 text-sm font-semibold text-white">
+                  <Sparkles className="h-3.5 w-3.5 text-violet-200" />
+                  {pattern.label}
+                </span>
+                <span className="mt-1 block text-xs leading-5 text-slate-400">{pattern.description}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         <label className="block text-sm text-slate-300">
@@ -250,10 +259,12 @@ export function ScenarioBuilderPanel({ showInterventions = false }: { showInterv
   );
 }
 
-function buildExtrapolationCopy(layer: BiologicalLayer) {
+function buildExtrapolationCopy(layer: StartingPointLayer) {
+  if (layer === "scenario") return "Starting from scenario: BioNexus shows where the state appears in the body, then exposes upstream genes/pathways and downstream phenotype effects.";
   if (layer === "genes") return "Starting from genes: BioNexus projects toward proteins, pathways, tissues, organs, phenotypes, scenarios and interventions.";
   if (layer === "proteins") return "Starting from proteins: the sandbox suggests possible gene context and projects pathway and tissue relationships.";
   if (layer === "pathways") return "Starting from pathways: the sandbox ranks upstream genes and downstream body systems most affected by the selected signal.";
+  if (layer === "organs") return "Starting from organ state: the atlas answers where, while the inspector traces genes, molecules, pathways and phenotypes that could relate to that region.";
   if (layer === "tissues") return "Starting from tissue or organ state: the sandbox suggests genes and pathways that could plausibly relate to the selected body-region signal.";
   if (layer === "phenotypes") return "Starting from phenotype: BioNexus walks backward toward candidate genes/pathways and forward toward scenario-level effects.";
   return "Starting from intervention or exposure: the sandbox treats it as a perturbation and shows possible pathway, organ and phenotype effects.";

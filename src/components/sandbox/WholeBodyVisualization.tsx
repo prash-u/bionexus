@@ -1,6 +1,7 @@
 import { Activity, Brain, Info, Waves } from "lucide-react";
 import type { PointerEvent as ReactPointerEvent, ReactNode, WheelEvent as ReactWheelEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
+import { useSandbox } from "@/lib/sandbox/sandboxState";
 
 export type BodySystemFilterId =
   | "nervous"
@@ -295,8 +296,12 @@ const regionSynonyms: Partial<Record<BodySystemFilterId, string[]>> = {
   adipose: ["adipose", "fat", "metabolic", "lipid"]
 };
 
+const atlasRegionIds: BodySystemFilterId[] = ["cns", "eye", "heart", "lungs", "liver", "pancreas", "gut", "kidney", "muscle", "immune"];
+
 export function WholeBodyVisualization(props: WholeBodyVisualizationProps) {
-  const sandbox = props.sandbox ?? props.sandboxState;
+  const sandboxContext = useSandbox();
+  const sandbox = props.sandbox ?? props.sandboxState ?? sandboxContext.sandbox;
+  const activePreset = sandboxContext.activePreset;
   const result = props.simulationResult ?? props.result ?? sandbox?.simulationResult;
   const scenario = sandbox?.scenario ?? {};
   const presetId = sandbox?.activeScenarioId ?? scenario?.id ?? "";
@@ -305,7 +310,6 @@ export function WholeBodyVisualization(props: WholeBodyVisualizationProps) {
   const showRawDetails = mode === "researcher" || mode === "expert";
   const initialSystems = props.activeSystems?.filter((id): id is AtlasSystemId => atlasSystems.some((system) => system.id === id)) ?? ["nervous", "cardiovascular", "respiratory"];
   const [enabledSystems, setEnabledSystems] = useState<AtlasSystemId[]>(initialSystems.length ? initialSystems : ["nervous", "cardiovascular", "respiratory"]);
-  const [showMolecules, setShowMolecules] = useState(mode === "researcher" || mode === "expert");
   const [showLabels, setShowLabels] = useState(true);
   const [signalDensity, setSignalDensity] = useState<DensityLevel>("medium");
   const [selectedRegionId, setSelectedRegionId] = useState<BodySystemFilterId>("cns");
@@ -313,6 +317,7 @@ export function WholeBodyVisualization(props: WholeBodyVisualizationProps) {
   const [dragStart, setDragStart] = useState<{ clientX: number; clientY: number; panX: number; panY: number; zoom: number } | null>(null);
   const selectedRegion = regions.find((region) => region.id === selectedRegionId) ?? regions[0];
   const scores = useMemo(() => buildRegionScores(result, scenario, isHealthyBaseline), [result, scenario, isHealthyBaseline]);
+  const atlasRegions = useMemo(() => regions.filter((region) => atlasRegionIds.includes(region.id)), []);
   const activeSet = new Set<BodySystemFilterId>(enabledSystems);
   const selectedScore = scores[selectedRegion.id] ?? 18;
   const selectedActive = activeSet.size === 0 || activeSet.has(selectedRegion.id) || activeSet.has(selectedRegion.filterId);
@@ -393,7 +398,6 @@ export function WholeBodyVisualization(props: WholeBodyVisualizationProps) {
             </div>
           </div>
           <div className="flex flex-wrap items-end gap-2">
-            <ToggleButton active={showMolecules} label="Molecules" onClick={() => setShowMolecules((value) => !value)} />
             <ToggleButton active={showLabels} label="Labels" onClick={() => setShowLabels((value) => !value)} />
             <label className="block text-xs text-slate-400">
               <span className="mb-1 block uppercase tracking-[0.16em] text-slate-500">Signal Density</span>
@@ -463,13 +467,12 @@ export function WholeBodyVisualization(props: WholeBodyVisualizationProps) {
                 preserveAspectRatio="xMidYMid meet"
                 filter="url(#bodyAtlasDropGlow)"
               />
-              <SystemOverlayLayer systems={activeOverlayDetails} density={signalDensity} showLabels={showLabels} showMolecules={showMolecules && mode !== "beginner" && signalDensity !== "low"} mode={mode} />
-              {showMolecules ? <MolecularEdges isHealthyBaseline={isHealthyBaseline} selectedRegion={selectedRegion} /> : null}
+              <SystemOverlayLayer systems={activeOverlayDetails} density={signalDensity} showLabels={false} showMolecules={false} mode={mode} />
               <RegionAnchorLayer
                 activeSet={activeSet}
                 density={signalDensity}
                 isHealthyBaseline={isHealthyBaseline}
-                regions={regions}
+                regions={atlasRegions}
                 scores={scores}
                 selectedRegionId={selectedRegion.id}
                 showLabels={showLabels}
@@ -506,18 +509,11 @@ export function WholeBodyVisualization(props: WholeBodyVisualizationProps) {
               <MechanismRow icon={<Waves className="h-4 w-4" />} label="Pathway signal" value={pathwayText(result, selectedRegion)} />
               <MechanismRow icon={<Activity className="h-4 w-4" />} label="System response" value={selectedActive ? `${selectedRegion.plainLabel} is included in the current body map.` : `${selectedRegion.plainLabel} is currently dimmed by the active filter.`} />
             </div>
-            {showRawDetails ? (
-              <div className="mt-4 rounded-lg border border-cyan-300/15 bg-cyan-300/[0.045] p-3">
-                <p className="text-xs uppercase tracking-[0.16em] text-cyan-100">Molecular edge payload</p>
-                <p className="mt-2 text-xs leading-5 text-slate-300">
-                  Example traversal: {selectedRegion.molecules.join(" -> ")}. Ratios are illustrative sandbox weights, not measured stoichiometry.
-                </p>
-              </div>
-            ) : null}
+            <BiologyDetailGrid result={result} selectedRegion={selectedRegion} activePreset={activePreset} showRawDetails={showRawDetails} />
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            {regions.map((region) => (
+            {atlasRegions.map((region) => (
               <button
                 key={region.id}
                 type="button"
@@ -548,6 +544,59 @@ export function WholeBodyVisualization(props: WholeBodyVisualizationProps) {
         </aside>
       </div>
     </section>
+  );
+}
+
+function BiologyDetailGrid({
+  result,
+  selectedRegion,
+  activePreset,
+  showRawDetails
+}: {
+  result: any;
+  selectedRegion: BodyRegion;
+  activePreset: any;
+  showRawDetails: boolean;
+}) {
+  const genes = uniqueStrings([
+    ...(result?.backtraceCandidates ?? [])
+      .filter((candidate: any) => candidate.linkedBodyRegions?.some?.((region: string) => regionMatchesSelectedRegion(region, selectedRegion)))
+      .map((candidate: any) => candidate.geneSymbol),
+    ...(activePreset?.keyGenes ?? [])
+  ]).slice(0, showRawDetails ? 6 : 3);
+  const pathways = uniqueStrings([
+    ...(result?.pathwayDeltas ? Object.entries(result.pathwayDeltas).sort(([, a], [, b]) => Math.abs(Number(b)) - Math.abs(Number(a))).map(([name]) => name) : []),
+    ...(activePreset?.keyPathways ?? [])
+  ]).slice(0, showRawDetails ? 6 : 3);
+  const molecules = selectedRegion.molecules.slice(0, showRawDetails ? selectedRegion.molecules.length : 2);
+  const relationships = [
+    `${genes[0] ?? "Candidate gene"} -> ${pathways[0] ?? "pathway signal"}`,
+    `${pathways[0] ?? "Pathway signal"} -> ${selectedRegion.plainLabel}`,
+    `${selectedRegion.plainLabel} -> ${result?.phenotypeEffects?.[0]?.label ?? "phenotype effect"}`
+  ];
+
+  return (
+    <div className="mt-4 grid gap-2">
+      <DetailList title="Genes" items={genes.length ? genes : ["No dominant gene selected"]} />
+      <DetailList title="Proteins / molecules" items={molecules} />
+      <DetailList title="Pathways" items={pathways.length ? pathways : ["No pathway signal selected"]} />
+      <DetailList title="Relationships" items={relationships} />
+    </div>
+  );
+}
+
+function DetailList({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-slate-950/45 p-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-cyan-100">{title}</p>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {items.map((item) => (
+          <span key={item} className="rounded-full border border-slate-700/55 bg-slate-950/70 px-2.5 py-1 text-xs text-slate-300">
+            {item}
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -894,6 +943,20 @@ function MechanismRow({ icon, label, value }: { icon: ReactNode; label: string; 
       <p className="mt-2 text-sm leading-6 text-slate-300">{value}</p>
     </div>
   );
+}
+
+function uniqueStrings(values: Array<string | undefined | null>) {
+  return Array.from(new Set(values.filter((value): value is string => Boolean(value))));
+}
+
+function regionMatchesSelectedRegion(region: string, selectedRegion: BodyRegion) {
+  const normalised = region.toLowerCase();
+  if (normalised === selectedRegion.id.toLowerCase()) return true;
+  if (normalised.includes(selectedRegion.id.toLowerCase())) return true;
+  if (selectedRegion.id === "cns" && normalised.includes("brain")) return true;
+  if (selectedRegion.id === "gut" && normalised.includes("intestine")) return true;
+  if (selectedRegion.id === "immune" && (normalised.includes("immune") || normalised.includes("blood") || normalised.includes("marrow"))) return true;
+  return normalised.includes(selectedRegion.plainLabel.toLowerCase().split(" ")[0]);
 }
 
 function buildRegionScores(result: any, scenario: any, isHealthyBaseline: boolean): Record<BodySystemFilterId, number> {
