@@ -5,14 +5,17 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import type { BiologicalLayer, ParameterControlId } from "@/lib/ontology/types";
 import { useSandbox } from "@/lib/sandbox/sandboxState";
 
-type StartingPointLayer = BiologicalLayer | "scenario";
+type StartingPointLayer = BiologicalLayer | "scenario" | "molecule";
+type TraceDirection = "forward" | "backward";
 
 const dataLayerOptions: Array<{ id: StartingPointLayer; label: string; example: string }> = [
   { id: "scenario", label: "Scenario", example: "metabolic dysfunction, retinal degeneration, inflammatory activation" },
   { id: "genes", label: "Gene", example: "SNCA, GBA1, INSR, RPE65, RPGR" },
   { id: "proteins", label: "Protein", example: "alpha-synuclein, insulin receptor, rhodopsin" },
+  { id: "molecule", label: "Molecule", example: "dopamine, insulin, IL-6, glucose, cortisol" },
   { id: "pathways", label: "Pathway", example: "mitophagy, insulin signalling, cytokine signalling" },
   { id: "organs", label: "Organ", example: "retina, liver, pancreas, brain, muscle" },
+  { id: "systems", label: "System", example: "nervous system, endocrine system, immune system" },
   { id: "phenotypes", label: "Phenotype", example: "tremor, glucose pressure, inflammation, vision loss" },
   { id: "interventions", label: "Intervention", example: "DBS, exercise, sleep disruption, gene delivery" }
 ];
@@ -106,6 +109,7 @@ export function ScenarioBuilderPanel({ showInterventions = false }: { showInterv
   const activeInterventions = new Set(sandbox.scenario.interventions.map((item) => item.id));
   const [knownLayer, setKnownLayer] = useState<StartingPointLayer>("phenotypes");
   const [exampleText, setExampleText] = useState("Observed tremor + motor slowing after neural-circuit perturbation");
+  const [traceDirection, setTraceDirection] = useState<TraceDirection>("backward");
   const isHealthyBaseline = sandbox.activeScenarioId === "healthy-baseline";
   const readerMode = getReaderMode();
   const showMechanisticTrace = readerMode === "researcher" || readerMode === "expert";
@@ -115,8 +119,9 @@ export function ScenarioBuilderPanel({ showInterventions = false }: { showInterv
   const selectedLayer = dataLayerOptions.find((item) => item.id === knownLayer) ?? dataLayerOptions[0];
   const extrapolation = useMemo(() => buildExtrapolationCopy(knownLayer), [knownLayer]);
   const patterns = isHealthyBaseline ? healthyPatterns : evidencePatterns;
-  const upstreamLabel = showMechanisticTrace ? "Trace backward" : "What could explain this?";
-  const downstreamLabel = showMechanisticTrace ? "Trace forward" : "What could this affect?";
+  const activeTrace = traceDirection === "backward"
+    ? buildBackwardTrace(topBacktrace, activePreset, exampleText)
+    : buildForwardTrace(topPhenotypes, activePreset, knownLayer, exampleText);
 
   const applyPattern = (pattern: (typeof evidencePatterns)[number]) => {
     applySandboxTuning({
@@ -166,30 +171,45 @@ export function ScenarioBuilderPanel({ showInterventions = false }: { showInterv
             <GitBranch className="h-4 w-4 text-violet-100" />
             <p className="text-xs uppercase tracking-[0.18em] text-violet-100">Reasoning direction</p>
           </div>
-          <div className="mt-3 grid gap-3">
-            <div className="rounded-md border border-white/10 bg-slate-950/35 p-3">
-              <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-cyan-100">
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <button
+              type="button"
+              className={`rounded-md border p-3 text-left transition ${
+                traceDirection === "backward" ? "border-cyan-300/50 bg-cyan-300/10 text-cyan-50" : "border-white/10 bg-slate-950/35 text-slate-300 hover:border-cyan-300/35"
+              }`}
+              onClick={() => setTraceDirection("backward")}
+            >
+              <span className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-cyan-100">
                 <ArrowUp className="h-3.5 w-3.5" />
-                {upstreamLabel}
-              </div>
-              <div className="space-y-2 text-sm text-slate-300">
-                {isHealthyBaseline && !showMechanisticTrace ? (
-                  <p>No dominant disruption selected.</p>
-                ) : topBacktrace.map((candidate) => (
-                  <p key={candidate.id}><strong className="text-white">{candidate.geneSymbol}</strong> traces to {candidate.linkedPathways.slice(0, 2).join(" / ")}</p>
-                ))}
-              </div>
-            </div>
-            <div className="rounded-md border border-white/10 bg-slate-950/35 p-3">
-              <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-100">
+                Trace backward
+              </span>
+              <span className="block text-sm font-semibold text-white">What could explain this?</span>
+            </button>
+            <button
+              type="button"
+              className={`rounded-md border p-3 text-left transition ${
+                traceDirection === "forward" ? "border-emerald-300/50 bg-emerald-300/10 text-emerald-50" : "border-white/10 bg-slate-950/35 text-slate-300 hover:border-emerald-300/35"
+              }`}
+              onClick={() => setTraceDirection("forward")}
+            >
+              <span className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-100">
                 <ArrowDown className="h-3.5 w-3.5" />
-                {downstreamLabel}
-              </div>
-              <div className="space-y-2 text-sm text-slate-300">
-                {topPhenotypes.map((effect) => (
-                  <p key={effect.phenotype}><strong className="text-white">{effect.label}</strong> · {effect.magnitude}% relative effect</p>
-                ))}
-              </div>
+                Trace forward
+              </span>
+              <span className="block text-sm font-semibold text-white">What could this affect?</span>
+            </button>
+          </div>
+          <div className="mt-3 rounded-md border border-white/10 bg-slate-950/35 p-3">
+            <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Knowledge path</p>
+            <div className="mt-3 space-y-2">
+              {isHealthyBaseline && !showMechanisticTrace && traceDirection === "backward" ? (
+                <p className="text-sm text-slate-300">No dominant disruption selected.</p>
+              ) : activeTrace.map((step, index) => (
+                <div key={`${step}-${index}`} className="flex items-center gap-2 text-sm text-slate-300">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-cyan-300/25 bg-cyan-300/10 text-[10px] text-cyan-100">{index + 1}</span>
+                  <span>{step}</span>
+                </div>
+              ))}
             </div>
           </div>
           <p className="mt-3 text-xs leading-5 text-slate-500">{extrapolation}</p>
@@ -263,11 +283,40 @@ function buildExtrapolationCopy(layer: StartingPointLayer) {
   if (layer === "scenario") return "Starting from scenario: BioNexus shows where the state appears in the body, then exposes upstream genes/pathways and downstream phenotype effects.";
   if (layer === "genes") return "Starting from genes: BioNexus projects toward proteins, pathways, tissues, organs, phenotypes, scenarios and interventions.";
   if (layer === "proteins") return "Starting from proteins: the sandbox suggests possible gene context and projects pathway and tissue relationships.";
+  if (layer === "molecule") return "Starting from molecule: BioNexus traces candidate sources, affected proteins/pathways, body regions and phenotype-level consequences.";
   if (layer === "pathways") return "Starting from pathways: the sandbox ranks upstream genes and downstream body systems most affected by the selected signal.";
   if (layer === "organs") return "Starting from organ state: the atlas answers where, while the inspector traces genes, molecules, pathways and phenotypes that could relate to that region.";
+  if (layer === "systems") return "Starting from system state: BioNexus maps affected organs, candidate pathways and phenotype consequences across the body.";
   if (layer === "tissues") return "Starting from tissue or organ state: the sandbox suggests genes and pathways that could plausibly relate to the selected body-region signal.";
   if (layer === "phenotypes") return "Starting from phenotype: BioNexus walks backward toward candidate genes/pathways and forward toward scenario-level effects.";
   return "Starting from intervention or exposure: the sandbox treats it as a perturbation and shows possible pathway, organ and phenotype effects.";
+}
+
+function buildBackwardTrace(topBacktrace: ReturnType<typeof useSandbox>["sandbox"]["simulationResult"]["backtraceCandidates"], activePreset: ReturnType<typeof useSandbox>["activePreset"], exampleText: string) {
+  const candidate = topBacktrace[0];
+  return [
+    exampleText || "Selected observation",
+    activePreset.phenotypeEffects[0]?.label ?? "Phenotype",
+    activePreset.organEffects[0]?.label ?? "Tissue / organ state",
+    activePreset.keyPathways[0] ?? candidate?.linkedPathways?.[0] ?? "Pathway",
+    candidate?.geneSymbol ?? activePreset.keyGenes[0] ?? "Candidate gene"
+  ];
+}
+
+function buildForwardTrace(
+  topPhenotypes: ReturnType<typeof useSandbox>["sandbox"]["simulationResult"]["phenotypeEffects"],
+  activePreset: ReturnType<typeof useSandbox>["activePreset"],
+  layer: StartingPointLayer,
+  exampleText: string
+) {
+  const start = exampleText || dataLayerOptions.find((option) => option.id === layer)?.example || "Selected entity";
+  return [
+    start,
+    activePreset.keyGenes[0] ?? "Candidate gene",
+    activePreset.keyPathways[0] ?? "Pathway",
+    activePreset.organEffects[0]?.label ?? "Tissue / organ state",
+    topPhenotypes[0]?.label ?? activePreset.phenotypeEffects[0]?.label ?? "Phenotype"
+  ];
 }
 
 function getReaderMode() {

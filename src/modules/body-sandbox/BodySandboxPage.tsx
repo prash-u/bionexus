@@ -86,7 +86,7 @@ export function BodySandboxPage({ initialView = "body" }: { initialView?: Sandbo
                 className="flex w-full items-center justify-between rounded-lg border border-cyan-300/20 bg-cyan-300/[0.06] px-3 py-2 text-left text-xs font-semibold uppercase tracking-[0.16em] text-cyan-100 transition hover:border-cyan-200/45"
                 onClick={() => setLeftPanelCollapsed((value) => !value)}
               >
-                <span>{leftPanelCollapsed ? "Controls" : "Scenario Controls"}</span>
+                <span>{leftPanelCollapsed ? "Start" : "Biological Starting Point"}</span>
                 {leftPanelCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
               </button>
             </GlassCard>
@@ -95,7 +95,7 @@ export function BodySandboxPage({ initialView = "body" }: { initialView?: Sandbo
                 <ScanHeart className="mt-2 h-5 w-5 text-cyan-200" />
                 <FlaskConical className="h-5 w-5 text-emerald-200" />
                 <Activity className="h-5 w-5 text-violet-200" />
-                <span className="mt-2 [writing-mode:vertical-rl] text-xs uppercase tracking-[0.18em] text-slate-400">Sandbox parameters</span>
+                <span className="mt-2 [writing-mode:vertical-rl] text-xs uppercase tracking-[0.18em] text-slate-400">Reasoning start point</span>
               </GlassCard>
             ) : (
               <div className="max-h-[calc(100vh-11.5rem)] space-y-3 overflow-y-auto pr-1">

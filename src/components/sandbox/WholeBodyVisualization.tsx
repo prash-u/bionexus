@@ -897,12 +897,9 @@ function regionColor(tone: string, score: number, isHealthyBaseline: boolean) {
 function shouldShowRegionLabel(region: BodyRegion, selectedRegionId: BodySystemFilterId, density: DensityLevel, showLabels: boolean) {
   if (!showLabels) return false;
   if (region.id === selectedRegionId) return true;
-  if (density === "low") return false;
-  const mediumRegions: BodySystemFilterId[] = ["cns", "heart", "lungs", "liver", "gut", "muscle"];
-  if (density === "medium") return mediumRegions.includes(region.id);
-  const highRegions: BodySystemFilterId[] = [...mediumRegions, "kidney", "pancreas", "immune", "eye"];
-  if (density === "high") return highRegions.includes(region.id);
-  return true;
+  if (density === "maximum") return ["cns", "heart", "lungs", "liver", "pancreas", "gut", "kidney", "muscle", "immune", "eye"].includes(region.id);
+  if (density === "high") return ["cns", "heart", "liver", "gut"].includes(region.id);
+  return false;
 }
 
 function labelOffset(id: BodySystemFilterId): { x: number; y: number; anchor: "start" | "middle" | "end" } {
