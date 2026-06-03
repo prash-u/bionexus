@@ -7,8 +7,8 @@ import type { ParameterControlDefinition } from "@/lib/ontology/types";
 const parameterGroups: Array<{ id: NonNullable<ParameterControlDefinition["group"]>; label: string; description: string }> = [
   { id: "neural", label: "Neural", description: "Circuit excitability and motor/sensory signalling." },
   { id: "immune", label: "Immune", description: "Inflammation and immune activation state." },
-  { id: "metabolic", label: "Metabolic", description: "Glucose, lipid and insulin-response pressure." },
-  { id: "cellular", label: "Cellular stress", description: "Energy reserve and oxidative pressure." },
+  { id: "metabolic", label: "Metabolic", description: "Glucose, lipid and insulin-response load." },
+  { id: "cellular", label: "Cellular stress", description: "Energy reserve and oxidative stress load." },
   { id: "ocular", label: "Ocular", description: "Retinal and visual-system stress." }
 ];
 

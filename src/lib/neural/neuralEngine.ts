@@ -69,7 +69,7 @@ export const neuralCircuitPresets: NeuralCircuitPreset[] = [
   {
     id: "parkinsonian",
     label: "Parkinsonian tremor",
-    summary: "High tremor pressure with stimulation off",
+    summary: "High tremor load with stimulation off",
     description: "A noisy basal ganglia loop state for exploring motor-circuit instability before modulation.",
     stimulation: {
       enabled: false,
@@ -118,7 +118,7 @@ export const neuralCircuitPresets: NeuralCircuitPreset[] = [
     id: "therapeutic-window",
     label: "Therapeutic-window demo",
     summary: "Near the suppressive sweet spot in the educational model",
-    description: "A balanced parameter mix showing reduced tremor pressure without high overload.",
+    description: "A balanced parameter mix showing reduced tremor load without high overload.",
     stimulation: {
       enabled: true,
       mode: "tremor",

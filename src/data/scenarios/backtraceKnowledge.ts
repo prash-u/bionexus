@@ -54,7 +54,7 @@ export const backtraceSeeds: CandidateSeed[] = [
     baseScore: 0.82,
     confidence: 0.66,
     evidenceIds: ["reactome-neuronal-system", "network-pulse-parkinsonism"],
-    reasoning: "Motor circuit stress with proteostasis pressure makes SNCA a plausible upstream explanatory candidate in this preset.",
+    reasoning: "Motor circuit stress with proteostasis stress makes SNCA a plausible upstream explanatory candidate in this preset.",
     assumptions
   },
   {
@@ -69,7 +69,7 @@ export const backtraceSeeds: CandidateSeed[] = [
     baseScore: 0.68,
     confidence: 0.58,
     evidenceIds: ["network-pulse-parkinsonism"],
-    reasoning: "Combined inflammatory and neural stress increases the rank of LRRK2 as a bridge candidate between immune tone and neural pathway pressure.",
+    reasoning: "Combined inflammatory and neural stress increases the rank of LRRK2 as a bridge candidate between immune tone and neural pathway load.",
     assumptions
   },
   {
@@ -84,7 +84,7 @@ export const backtraceSeeds: CandidateSeed[] = [
     baseScore: 0.72,
     confidence: 0.6,
     evidenceIds: ["network-pulse-parkinsonism"],
-    reasoning: "Mitochondrial stress and motor-output pressure suggest mitophagy-linked genes as upstream candidates.",
+    reasoning: "Mitochondrial stress and motor-output stress suggest mitophagy-linked genes as upstream candidates.",
     assumptions
   },
   {
@@ -99,7 +99,7 @@ export const backtraceSeeds: CandidateSeed[] = [
     baseScore: 0.86,
     confidence: 0.72,
     evidenceIds: ["reactome-insulin-signalling", "network-pulse-diabetes"],
-    reasoning: "Reduced insulin sensitivity and skeletal-muscle glucose uptake pressure point upstream toward insulin receptor signalling.",
+    reasoning: "Reduced insulin sensitivity and skeletal-muscle glucose uptake stress point upstream toward insulin receptor signalling.",
     assumptions
   },
   {
@@ -144,7 +144,7 @@ export const backtraceSeeds: CandidateSeed[] = [
     baseScore: 0.86,
     confidence: 0.7,
     evidenceIds: ["reactome-phototransduction"],
-    reasoning: "Retinal signal stress and retinoid-cycle payload pressure make RPE65 a high-rank upstream candidate.",
+    reasoning: "Retinal signal stress and retinoid-cycle payload load make RPE65 a high-rank upstream candidate.",
     assumptions
   },
   {
@@ -174,7 +174,7 @@ export const backtraceSeeds: CandidateSeed[] = [
     baseScore: 0.9,
     confidence: 0.76,
     evidenceIds: ["reactome-il6-signalling", "network-pulse-inflammation"],
-    reasoning: "Immune activation plus liver acute-phase pressure strongly ranks IL6 as an upstream signalling candidate.",
+    reasoning: "Immune activation plus liver acute-phase activity strongly ranks IL6 as an upstream signalling candidate.",
     assumptions
   },
   {
@@ -189,7 +189,7 @@ export const backtraceSeeds: CandidateSeed[] = [
     baseScore: 0.82,
     confidence: 0.72,
     evidenceIds: ["reactome-tnf-signalling"],
-    reasoning: "Distributed inflammatory organ pressure and NF-kB context make TNF a likely candidate in the reverse reasoning map.",
+    reasoning: "Distributed inflammatory organ stress and NF-kB context make TNF a likely candidate in the reverse reasoning map.",
     assumptions
   },
   {
@@ -204,7 +204,7 @@ export const backtraceSeeds: CandidateSeed[] = [
     baseScore: 0.78,
     confidence: 0.68,
     evidenceIds: ["reactome-tnf-signalling"],
-    reasoning: "Cytokine and tissue inflammation pressure point toward NF-kB transcriptional regulation as an explanatory layer.",
+    reasoning: "Cytokine and tissue inflammation activity point toward NF-kB transcriptional regulation as an explanatory layer.",
     assumptions
   }
 ];

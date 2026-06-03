@@ -29,7 +29,7 @@ export function NeuralCircuitPage() {
             <p className="text-sm uppercase tracking-[0.18em] text-violet-200">Neural Circuit Module</p>
             <h1 className="mt-2 text-3xl font-semibold text-white">Basal ganglia modulation sandbox connected to the body model</h1>
             <p className="mt-2 max-w-3xl text-slate-400">
-              This module uses the tested Neural Pulse Play control framework: stimulation presets, pulse parameters, tremor pressure, synchrony, overload and suppression are real local state that can be sent back to Body Sandbox.
+              This module uses the tested Neural Pulse Play control framework: stimulation presets, pulse parameters, tremor load, synchrony, overload and suppression are real local state that can be sent back to Body Sandbox.
             </p>
           </div>
           <div className="rounded-lg border border-violet-300/20 bg-violet-300/[0.07] p-4">

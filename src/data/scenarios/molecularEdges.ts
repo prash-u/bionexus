@@ -251,7 +251,7 @@ export const molecularEdges: MolecularEdge[] = [
     pathwayContext: "IL-6, TNF and NF-kB/JAK-STAT inflammatory relay",
     baseFlux: 0.58,
     scenarioModifier: 0.34,
-    notes: "Cytokine signal edge uses protein/cytokine identities and relative inflammatory pressure.",
+    notes: "Cytokine signal edge uses protein/cytokine identities and relative inflammatory activity.",
     payloads: [
       {
         molecule: "IL-6",

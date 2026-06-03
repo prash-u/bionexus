@@ -17,7 +17,7 @@ export function SandboxOutputPanel() {
     <GlassCard>
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-cyan-200">Current simulated state</p>
+          <p className="text-xs uppercase tracking-[0.18em] text-cyan-200">Current reasoning state</p>
           <h2 className="mt-1 text-lg font-semibold text-white">{sandbox.scenario.title}</h2>
         </div>
         <Link className="nexus-button" to="/reports"><FileText className="h-4 w-4" /> Report</Link>
@@ -25,7 +25,7 @@ export function SandboxOutputPanel() {
       <div className="grid gap-3 md:grid-cols-2">
         <OutputBlock title="Affected systems" items={activePreset.affectedSystems} />
         <OutputBlock title="Key pathways" items={activePreset.keyPathways} />
-        <OutputBlock title="Computed regions" items={sandbox.simulationResult.organEffects.slice(0, 6).map((effect) => `${bodyRegionLabels[effect.organ]} ${effect.magnitude}%`)} />
+        <OutputBlock title="Region relative effects" items={sandbox.simulationResult.organEffects.slice(0, 6).map((effect) => `${bodyRegionLabels[effect.organ]} ${effect.magnitude}%`)} />
         <OutputBlock title="Active interventions" items={sandbox.scenario.interventions.map((item) => item.label)} />
         <OutputBlock title="Observable shifts" items={topObservables} />
         <OutputBlock title="Backtraced genes" items={topGenes} />
@@ -34,7 +34,7 @@ export function SandboxOutputPanel() {
         <OutputBlock title="Neural circuit state" items={[sandbox.neuralCircuitState.summary]} />
       </div>
       <div className="mt-4 rounded-lg border border-slate-700/40 bg-slate-950/35 p-4">
-        <p className="mb-3 text-sm font-semibold text-white">Module outputs included in report</p>
+        <p className="mb-3 text-sm font-semibold text-white">Reasoning lenses included in report</p>
         <div className="space-y-2">
           {sandbox.moduleOutputs.map((output) => (
             <label key={output.moduleId} className="flex items-start gap-3 text-sm text-slate-300">

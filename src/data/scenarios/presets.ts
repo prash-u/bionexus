@@ -49,16 +49,16 @@ export const scenarioPresets: ScenarioPreset[] = [
     title: "Healthy Baseline",
     shortTitle: "Healthy Baseline",
     category: "custom",
-    description: "A low-pressure reference state for building a custom biological model before adding predispositions, perturbations or what-if interventions.",
+    description: "A low-disruption reference state for building a custom biological model before adding predispositions, perturbations or what-if interventions.",
     affectedSystems: ["Whole-body homeostasis", "System stability"],
     affectedRegions: ["brain", "heart", "lungs", "liver", "kidney", "muscle", "immune"],
     keyGenes: ["GAPDH", "ACTB", "INSR", "NFKB1"],
     keyPathways: ["Homeostatic signalling", "Energy metabolism", "Oxygen transport", "Immune surveillance"],
-    baselineProfile: { id: "baseline-healthy", label: "Healthy reference", description: "Low-pressure baseline for exploratory state building.", assumptions },
+    baselineProfile: { id: "baseline-healthy", label: "Healthy reference", description: "Low-disruption baseline for exploratory state building.", assumptions },
     predispositions: [],
     perturbations: [],
     interventions: [],
-    reasoningTrail: { id: "trail-healthy", steps: ["Baseline: no disease-centered preset selected", "Observe: body systems remain near reference pressure", "Understand: homeostatic pathways provide comparison context", "Perturb: add custom changes only when testing a what-if"] },
+    reasoningTrail: { id: "trail-healthy", steps: ["Baseline: no disease-centered preset selected", "Observe: body systems remain near reference range", "Understand: homeostatic pathways provide comparison context", "Perturb: add custom changes only when testing a what-if"] },
     organEffects: [
       { organ: "heart", label: "Reference cardiac support", direction: "baseline", magnitude: 20, ...trace("scenario-healthy", "Healthy baseline") },
       { organ: "lungs", label: "Reference oxygen exchange", direction: "baseline", magnitude: 18, ...trace("scenario-healthy", "Healthy baseline") },
@@ -69,7 +69,7 @@ export const scenarioPresets: ScenarioPreset[] = [
       { system: "Whole-body homeostasis", label: "Stable reference state", status: "stable", magnitude: 18, ...trace("scenario-healthy", "Healthy baseline") }
     ],
     phenotypeEffects: [
-      { phenotype: "Reference state", label: "No dominant phenotype pressure", direction: "baseline", magnitude: 16, ...trace("scenario-healthy", "Healthy baseline") }
+      { phenotype: "Reference state", label: "No dominant phenotype shift", direction: "baseline", magnitude: 16, ...trace("scenario-healthy", "Healthy baseline") }
     ],
     limitations: ["Reference educational state only", "Not a claim of individual health"]
   },
@@ -98,7 +98,7 @@ export const scenarioPresets: ScenarioPreset[] = [
       { organ: "immune", label: "Custom immune context", direction: "baseline", magnitude: 26, ...trace("scenario-custom", "Custom biological state") }
     ],
     systemEffects: [
-      { system: "Custom sandbox state", label: "User-configured pressure", status: "modulated", magnitude: 28, ...trace("scenario-custom", "Custom biological state") }
+      { system: "Custom sandbox state", label: "User-configured relative effect", status: "modulated", magnitude: 28, ...trace("scenario-custom", "Custom biological state") }
     ],
     phenotypeEffects: [
       { phenotype: "User-defined phenotype", label: "Custom observed example", direction: "modulates", magnitude: 28, ...trace("scenario-custom", "Custom biological state") }
@@ -136,7 +136,7 @@ export const scenarioPresets: ScenarioPreset[] = [
       { organ: "muscle", label: "Movement phenotype readout", direction: "stress", magnitude: 42, ...trace("phenotype-tremor", "Parkinson's motor circuit preset") }
     ],
     systemEffects: [
-      { system: "Motor control", label: "Oscillatory control pressure", status: "stressed", magnitude: 78, ...trace("system-motor", "Parkinson's motor circuit preset") }
+      { system: "Motor control", label: "Oscillatory control stress", status: "stressed", magnitude: 78, ...trace("system-motor", "Parkinson's motor circuit preset") }
     ],
     phenotypeEffects: [
       { phenotype: "Motor output", label: "Tremor/bradykinesia-style demonstration", direction: "emerges", magnitude: 64, ...trace("phenotype-tremor", "Parkinson's motor circuit preset") }
@@ -158,15 +158,15 @@ export const scenarioPresets: ScenarioPreset[] = [
       { id: "pred-insulin-resistance", label: "Insulin signalling resistance", targetLayer: "pathways", description: "Adds reduced signalling efficiency across liver and muscle.", confidence: 0.66 }
     ],
     perturbations: [
-      { id: "pert-glucose", label: "Glucose regulation load", targetLayer: "systems", direction: "increase", description: "Raises conceptual post-prandial handling pressure.", magnitude: 72 }
+      { id: "pert-glucose", label: "Glucose regulation load", targetLayer: "systems", direction: "increase", description: "Raises conceptual post-prandial handling load.", magnitude: 72 }
     ],
     interventions: [
       { id: "int-exercise-metabolic", label: "Exercise-driven glucose uptake", category: "Exercise", targetLayer: "systems", affectedPathwayOrSystem: "Skeletal muscle glucose uptake", expectedDirection: "stabilise", uncertainty: 36, safetyLanguage: "Educational adaptation model only.", relatedScenarioIds: ["metabolic-dysfunction"] },
       { id: "int-diet-metabolic", label: "Dietary load modifier", category: "Diet", targetLayer: "systems", affectedPathwayOrSystem: "Glucose availability", expectedDirection: "modulate", uncertainty: 44, safetyLanguage: "Scenario modifier only, not nutrition advice.", relatedScenarioIds: ["metabolic-dysfunction"] }
     ],
-    reasoningTrail: { id: "trail-metabolic", steps: ["Predisposition: reduced insulin signalling efficiency", "Pathway perturbation: glucose uptake and hepatic output imbalance", "Organ consequence: pancreas/liver/muscle workload", "Phenotype: glucose regulation pressure in the demo model", "Intervention modulation: exercise and diet as exploratory system modifiers"] },
+    reasoningTrail: { id: "trail-metabolic", steps: ["Predisposition: reduced insulin signalling efficiency", "Pathway perturbation: glucose uptake and hepatic output imbalance", "Organ consequence: pancreas/liver/muscle workload", "Phenotype: glucose regulation shift in the demo model", "Intervention modulation: exercise and diet as exploratory system modifiers"] },
     organEffects: [
-      { organ: "pancreas", label: "Insulin demand pressure", direction: "stress", magnitude: 74, ...trace("scenario-metabolic", "Metabolic dysfunction preset") },
+      { organ: "pancreas", label: "Insulin demand stress", direction: "stress", magnitude: 74, ...trace("scenario-metabolic", "Metabolic dysfunction preset") },
       { organ: "liver", label: "Hepatic glucose output", direction: "activation", magnitude: 70, ...trace("scenario-metabolic", "Metabolic dysfunction preset") },
       { organ: "muscle", label: "Glucose uptake resistance", direction: "suppression", magnitude: 62, ...trace("scenario-metabolic", "Metabolic dysfunction preset") },
       { organ: "intestine", label: "Nutrient input modifier", direction: "activation", magnitude: 44, ...trace("scenario-metabolic", "Metabolic dysfunction preset") },
@@ -176,7 +176,7 @@ export const scenarioPresets: ScenarioPreset[] = [
       { system: "Metabolic regulation", label: "Glucose handling stress", status: "stressed", magnitude: 76, ...trace("scenario-metabolic", "Metabolic dysfunction preset") }
     ],
     phenotypeEffects: [
-      { phenotype: "Glucose regulation", label: "Elevated regulation pressure", direction: "emerges", magnitude: 68, ...trace("scenario-metabolic", "Metabolic dysfunction preset") }
+      { phenotype: "Glucose regulation", label: "Elevated regulation load", direction: "emerges", magnitude: 68, ...trace("scenario-metabolic", "Metabolic dysfunction preset") }
     ],
     limitations: ["No glucose prediction", "No medication or lifestyle recommendation"]
   },
@@ -200,13 +200,13 @@ export const scenarioPresets: ScenarioPreset[] = [
     interventions: [
       { id: "int-ocular-gene-therapy", label: "Ocular gene therapy MOA placeholder", category: "Gene Therapy", targetLayer: "genes", affectedPathwayOrSystem: "Retinal gene expression / photoreceptor support", expectedDirection: "modulate", uncertainty: 55, safetyLanguage: "Mechanism demonstration only; not a therapy recommendation.", relatedScenarioIds: ["retinal-degeneration"] }
     ],
-    reasoningTrail: { id: "trail-retina", steps: ["Predisposition: inherited retinal vulnerability", "Pathway perturbation: phototransduction or retinoid cycle stress", "Tissue/organ consequence: photoreceptor and retinal signal pressure", "Phenotype: visual function stress in the educational model", "Intervention modulation: ocular gene therapy as mechanism-of-action placeholder"] },
+    reasoningTrail: { id: "trail-retina", steps: ["Predisposition: inherited retinal vulnerability", "Pathway perturbation: phototransduction or retinoid cycle stress", "Tissue/organ consequence: photoreceptor and retinal signal stress", "Phenotype: visual function stress in the educational model", "Intervention modulation: ocular gene therapy as mechanism-of-action placeholder"] },
     organEffects: [
       { organ: "eye", label: "Retinal signal stress", direction: "stress", magnitude: 86, ...trace("scenario-retina", "Retinal degeneration preset") },
       { organ: "brain", label: "Visual processing downstream", direction: "suppression", magnitude: 34, ...trace("scenario-retina", "Retinal degeneration preset") }
     ],
     systemEffects: [
-      { system: "Visual system", label: "Retinal input pressure", status: "stressed", magnitude: 82, ...trace("scenario-retina", "Retinal degeneration preset") }
+      { system: "Visual system", label: "Retinal input stress", status: "stressed", magnitude: 82, ...trace("scenario-retina", "Retinal degeneration preset") }
     ],
     phenotypeEffects: [
       { phenotype: "Visual function", label: "Reduced signal integrity demonstration", direction: "emerges", magnitude: 72, ...trace("scenario-retina", "Retinal degeneration preset") }
@@ -228,24 +228,24 @@ export const scenarioPresets: ScenarioPreset[] = [
       { id: "pred-inflammatory-tone", label: "Higher inflammatory tone", targetLayer: "systems", description: "Raises baseline immune activation in the sandbox.", confidence: 0.6 }
     ],
     perturbations: [
-      { id: "pert-cytokine", label: "Cytokine signalling activation", targetLayer: "pathways", direction: "increase", description: "Increases systemic inflammatory pathway pressure.", magnitude: 76 }
+      { id: "pert-cytokine", label: "Cytokine signalling activation", targetLayer: "pathways", direction: "increase", description: "Increases systemic inflammatory pathway activity.", magnitude: 76 }
     ],
     interventions: [
       { id: "int-sleep-immune", label: "Sleep disruption / restoration modifier", category: "Sleep", targetLayer: "systems", affectedPathwayOrSystem: "Inflammatory tone", expectedDirection: "modulate", uncertainty: 52, safetyLanguage: "Scenario modifier only, not medical advice.", relatedScenarioIds: ["inflammatory-activation"] },
       { id: "int-environment", label: "Environmental exposure modifier", category: "Environmental Modifier", targetLayer: "systems", affectedPathwayOrSystem: "Immune activation context", expectedDirection: "uncertain", uncertainty: 65, safetyLanguage: "Exploratory environmental modifier only.", relatedScenarioIds: ["inflammatory-activation"] }
     ],
-    reasoningTrail: { id: "trail-inflammation", steps: ["Predisposition: higher inflammatory tone", "Pathway perturbation: cytokine and NF-kB activation", "Tissue consequence: distributed inflammatory pressure", "Phenotype: systemic fatigue/pain-style demonstration language", "Intervention modulation: sleep and environment as exploratory modifiers"] },
+    reasoningTrail: { id: "trail-inflammation", steps: ["Predisposition: higher inflammatory tone", "Pathway perturbation: cytokine and NF-kB activation", "Tissue consequence: distributed inflammatory state", "Phenotype: systemic fatigue/pain-style demonstration language", "Intervention modulation: sleep and environment as exploratory modifiers"] },
     organEffects: [
       { organ: "immune", label: "Immune activation", direction: "activation", magnitude: 88, ...trace("scenario-immune", "Inflammatory activation preset") },
       { organ: "lungs", label: "Barrier tissue inflammation", direction: "stress", magnitude: 48, ...trace("scenario-immune", "Inflammatory activation preset") },
       { organ: "intestine", label: "Mucosal immune crosstalk", direction: "activation", magnitude: 52, ...trace("scenario-immune", "Inflammatory activation preset") },
       { organ: "spleen", label: "Immune relay activation", direction: "activation", magnitude: 58, ...trace("scenario-immune", "Inflammatory activation preset") },
-      { organ: "boneMarrow", label: "Hematopoietic immune pressure", direction: "activation", magnitude: 54, ...trace("scenario-immune", "Inflammatory activation preset") },
+      { organ: "boneMarrow", label: "Hematopoietic immune activity", direction: "activation", magnitude: 54, ...trace("scenario-immune", "Inflammatory activation preset") },
       { organ: "skin", label: "Barrier tissue context", direction: "stress", magnitude: 34, ...trace("scenario-immune", "Inflammatory activation preset") },
       { organ: "liver", label: "Acute-phase signalling context", direction: "activation", magnitude: 56, ...trace("scenario-immune", "Inflammatory activation preset") }
     ],
     systemEffects: [
-      { system: "Immune activation", label: "Cytokine pathway pressure", status: "activated", magnitude: 84, ...trace("scenario-immune", "Inflammatory activation preset") }
+      { system: "Immune activation", label: "Cytokine pathway activity", status: "activated", magnitude: 84, ...trace("scenario-immune", "Inflammatory activation preset") }
     ],
     phenotypeEffects: [
       { phenotype: "Systemic inflammatory state", label: "Fatigue/pain-style demo readout", direction: "emerges", magnitude: 62, ...trace("scenario-immune", "Inflammatory activation preset") }

@@ -4,6 +4,7 @@ import { ComplexitySelector } from "@/components/ui/ComplexitySelector";
 import { GlassCard } from "@/components/ui/GlassCard";
 import type { BiologicalLayer, ParameterControlId } from "@/lib/ontology/types";
 import { useSandbox } from "@/lib/sandbox/sandboxState";
+import { defaultParameters, parameterControls } from "@/lib/sandbox/simulation";
 
 type StartingPointLayer = BiologicalLayer | "scenario" | "molecule";
 type TraceDirection = "forward" | "backward";
@@ -16,7 +17,7 @@ const dataLayerOptions: Array<{ id: StartingPointLayer; label: string; example: 
   { id: "pathways", label: "Pathway", example: "mitophagy, insulin signalling, cytokine signalling" },
   { id: "organs", label: "Organ", example: "retina, liver, pancreas, brain, muscle" },
   { id: "systems", label: "System", example: "nervous system, endocrine system, immune system" },
-  { id: "phenotypes", label: "Phenotype", example: "tremor, glucose pressure, inflammation, vision loss" },
+  { id: "phenotypes", label: "Phenotype", example: "tremor, glucose regulation shift, inflammation, vision loss" },
   { id: "interventions", label: "Intervention", example: "DBS, exercise, sleep disruption, gene delivery" }
 ];
 
@@ -58,7 +59,7 @@ const evidencePatterns: Array<{
   {
     id: "rescue-modulation",
     label: "Rescue / modulation",
-    description: "Explores a stabilising intervention by reducing inflammation, synchrony and oxidative pressure.",
+    description: "Explores a stabilising intervention by reducing inflammation, synchrony and oxidative stress load.",
     patch: { inflammation: 0.22, neuralSynchrony: 0.32, oxidativeStress: 0.28, immuneActivation: 0.28, mitochondrialFunction: 0.78 },
     pathwayBias: -0.22
   }
@@ -122,6 +123,11 @@ export function ScenarioBuilderPanel({ showInterventions = false }: { showInterv
   const activeTrace = traceDirection === "backward"
     ? buildBackwardTrace(topBacktrace, activePreset, exampleText)
     : buildForwardTrace(topPhenotypes, activePreset, knownLayer, exampleText);
+  const changedParameters = parameterControls
+    .map((control) => ({ control, value: sandbox.parameters[control.id], baseline: defaultParameters[control.id] }))
+    .filter(({ value, baseline }) => Math.abs(value - baseline) >= 0.04)
+    .slice(0, 5);
+  const changedPathways = Object.entries(sandbox.pathwayTuning).filter(([, value]) => Math.abs(value) >= 0.05).slice(0, 4);
 
   const applyPattern = (pattern: (typeof evidencePatterns)[number]) => {
     applySandboxTuning({
@@ -241,6 +247,37 @@ export function ScenarioBuilderPanel({ showInterventions = false }: { showInterv
             {sandbox.presets.map((preset) => <option key={preset.id} value={preset.id}>{preset.title}</option>)}
           </select>
         </label>
+        <div className="rounded-lg border border-slate-700/50 bg-slate-950/40 p-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Preset meaning</p>
+          <p className="mt-2 text-sm font-semibold text-white">{activePreset.shortTitle}</p>
+          <p className="mt-1 text-xs leading-5 text-slate-400">{activePreset.description}</p>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {activePreset.affectedSystems.slice(0, 3).map((system) => (
+              <span key={system} className="rounded-full border border-cyan-300/20 bg-cyan-300/[0.06] px-2.5 py-1 text-[11px] text-cyan-100">{system}</span>
+            ))}
+          </div>
+        </div>
+        <div className="rounded-lg border border-emerald-300/20 bg-emerald-300/[0.045] p-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-emerald-100">User overrides</p>
+          {changedParameters.length || changedPathways.length ? (
+            <div className="mt-2 space-y-2">
+              {changedParameters.map(({ control, value, baseline }) => (
+                <div key={control.id} className="flex items-center justify-between gap-3 rounded-md border border-white/10 bg-slate-950/35 px-2.5 py-2 text-xs">
+                  <span className="text-slate-300">{control.label}</span>
+                  <span className="font-mono text-emerald-100">{Math.round(baseline * 100)}% to {Math.round(value * 100)}%</span>
+                </div>
+              ))}
+              {changedPathways.map(([pathway, value]) => (
+                <div key={pathway} className="flex items-center justify-between gap-3 rounded-md border border-white/10 bg-slate-950/35 px-2.5 py-2 text-xs">
+                  <span className="text-slate-300">{pathway}</span>
+                  <span className="font-mono text-emerald-100">{value > 0 ? "+" : ""}{value.toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 text-xs leading-5 text-slate-400">No user overrides yet. The sandbox is using the selected preset defaults.</p>
+          )}
+        </div>
         <div>
           <p className="mb-2 text-xs uppercase tracking-[0.18em] text-slate-500">Baseline profile</p>
           <div className="rounded-lg border border-slate-700/50 bg-slate-950/40 p-3">

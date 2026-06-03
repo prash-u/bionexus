@@ -42,11 +42,11 @@ const scenarioFromPreset = (preset: ScenarioPreset): Scenario => ({
 });
 
 const moduleOutputs = (preset: ScenarioPreset): ModuleOutput[] => [
-  { moduleId: "body-sandbox", title: "Body sandbox state", summary: `${preset.shortTitle} active across ${preset.affectedSystems.join(", ")}.`, includedInReport: true },
-  { moduleId: "body-atlas", title: "Whole-body atlas", summary: "Detailed organ, tissue and molecular edge map contributes selected body-state context.", includedInReport: true },
-  { moduleId: "knowledge-graph", title: "Pathway context", summary: `Active pathways: ${preset.keyPathways.join(", ")}.`, includedInReport: true },
+  { moduleId: "body-sandbox", title: "Reasoning state", summary: `${preset.shortTitle} active across ${preset.affectedSystems.join(", ")}.`, includedInReport: true },
+  { moduleId: "body-atlas", title: "Where lens", summary: "Whole-body atlas contributes selected organ and system context.", includedInReport: true },
+  { moduleId: "knowledge-graph", title: "Why lens", summary: `Active pathways: ${preset.keyPathways.join(", ")}.`, includedInReport: true },
   { moduleId: "interventions", title: "Perturbation library", summary: "Interventions are hidden until the user asks a what-if question.", includedInReport: false },
-  { moduleId: "neural-circuit", title: "Neural module", summary: preset.category === "neural" ? "Motor circuit module contributes DBS/modulation context." : "Neural module available as optional context.", includedInReport: preset.category === "neural" }
+  { moduleId: "neural-circuit", title: "Activity lens", summary: preset.category === "neural" ? "Motor circuit activity contributes modulation context." : "Neural activity available as optional context.", includedInReport: preset.category === "neural" }
 ];
 
 const systemStatesFromResult = (preset: ScenarioPreset, result: SandboxState["simulationResult"]): BodySystemState[] =>
@@ -77,13 +77,14 @@ const recalculate = (state: SandboxState, preset: ScenarioPreset): SandboxState 
     simulationResult,
     bodySystems: systemStatesFromResult(preset, simulationResult),
     moduleOutputs: state.moduleOutputs.map((output) => {
-      if (output.moduleId === "body-sandbox") return { ...output, summary: simulationResult.summary };
-      if (output.moduleId === "knowledge-graph") return { ...output, summary: `Active pathway deltas: ${Object.keys(simulationResult.pathwayDeltas).join(", ")}. Network imports: ${state.networkPulseImports.length}.` };
-      if (output.moduleId === "body-atlas") return { ...output, summary: `${simulationResult.organEffects.length} computed organ/tissue effects and ${simulationResult.molecularEdges.length} molecular edges.` };
+      if (output.moduleId === "body-sandbox") return { ...output, title: "Reasoning state", summary: simulationResult.summary };
+      if (output.moduleId === "knowledge-graph") return { ...output, title: "Why lens", summary: `Active pathway deltas: ${Object.keys(simulationResult.pathwayDeltas).join(", ")}. Network imports: ${state.networkPulseImports.length}.` };
+      if (output.moduleId === "body-atlas") return { ...output, title: "Where lens", summary: `${simulationResult.organEffects.length} organ/tissue relative effects and ${simulationResult.molecularEdges.length} molecular relationships.` };
       if (output.moduleId === "interventions") return { ...output, summary: `${state.scenario.interventions.length} selected exploratory modulators.` };
       if (output.moduleId === "neural-circuit") {
         return {
           ...output,
+          title: "Activity lens",
           summary: state.neuralCircuitState.sentToBodyAt
             ? `${state.neuralCircuitState.summary} Sent to Body Sandbox.`
             : state.neuralCircuitState.summary

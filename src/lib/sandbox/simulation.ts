@@ -75,9 +75,9 @@ export const parameterControls: ParameterControlDefinition[] = [
     lowLabel: "Low",
     highLabel: "High",
     group: "metabolic",
-    description: "Represents carbohydrate/lipid handling pressure across liver, pancreas, adipose tissue and skeletal muscle.",
+    description: "Represents carbohydrate/lipid handling load across liver, pancreas, adipose tissue and skeletal muscle.",
     realWorldContext: "Contextual tests might include HbA1c, lipid panel, fasting glucose, OGTT or continuous glucose trends.",
-    lowDescriptor: "Low energy pressure",
+    lowDescriptor: "Low energy load",
     highDescriptor: "High glucose/lipid load"
   },
   {
@@ -100,10 +100,10 @@ export const parameterControls: ParameterControlDefinition[] = [
     lowLabel: "Low",
     highLabel: "High",
     group: "cellular",
-    description: "Controls reactive-stress pressure affecting neural, retinal, cardiovascular and metabolic tissues.",
+    description: "Controls reactive-stress load affecting neural, retinal, cardiovascular and metabolic tissues.",
     realWorldContext: "Research context can include oxidative-damage markers, antioxidant capacity assays or mitochondrial stress models.",
     lowDescriptor: "Low stress",
-    highDescriptor: "High reactive pressure"
+    highDescriptor: "High reactive load"
   },
   {
     id: "retinalStress",
@@ -123,10 +123,10 @@ export const defaultParameters = Object.fromEntries(parameterControls.map((contr
 
 const observableBaselines: Record<string, { label: string; unit: string; baseline: number }> = {
   inflammation: { label: "Inflammatory Tone", unit: "a.u.", baseline: 0.22 },
-  glucosePressure: { label: "Glucose Regulation Pressure", unit: "a.u.", baseline: 0.24 },
+  glucosePressure: { label: "Glucose Regulation Load", unit: "a.u.", baseline: 0.24 },
   insulinSignal: { label: "Insulin Signal Integrity", unit: "a.u.", baseline: 0.74 },
   mitochondrialStress: { label: "Mitochondrial Stress", unit: "a.u.", baseline: 0.28 },
-  neuralOscillation: { label: "Neural Oscillation Pressure", unit: "a.u.", baseline: 0.3 },
+  neuralOscillation: { label: "Neural Oscillation Load", unit: "a.u.", baseline: 0.3 },
   retinalSignal: { label: "Retinal Signal Integrity", unit: "a.u.", baseline: 0.78 },
   systemStability: { label: "System Stability", unit: "a.u.", baseline: 0.82 }
 };
