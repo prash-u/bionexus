@@ -76,18 +76,18 @@ type SystemOverlay = {
 };
 
 const regions: BodyRegion[] = [
-  { id: "cns", filterId: "nervous", label: "Brain / CNS", plainLabel: "Brain and central nervous system", x: 50, y: 11, tone: "cyan", description: "Coordinates neural signalling, motor control and sensory integration.", molecules: ["dopamine", "BDNF", "alpha-synuclein"] },
-  { id: "eye", filterId: "ocular", label: "Eye / retina", plainLabel: "Eye and retina", x: 50, y: 9, tone: "violet", description: "Represents photoreceptor stress, retinal support and visual function signals.", molecules: ["RPE65", "rhodopsin", "AAV payload"] },
-  { id: "pns", filterId: "nervous", label: "Peripheral nerves", plainLabel: "Peripheral nervous system", x: 50, y: 24, tone: "blue", description: "Carries body-to-brain and brain-to-body signalling across peripheral circuits.", molecules: ["acetylcholine", "neurofilament", "ion channels"] },
-  { id: "heart", filterId: "cardiovascular", label: "Heart", plainLabel: "Heart", x: 50, y: 30, tone: "rose", description: "Tracks cardiovascular regulation, perfusion and autonomic state in the sandbox.", molecules: ["NO", "angiotensin II", "adrenaline"] },
-  { id: "lungs", filterId: "respiratory", label: "Lungs", plainLabel: "Lungs", x: 50, y: 27, tone: "sky", description: "Represents oxygen exchange, respiratory load and inflammatory signalling.", molecules: ["O2", "CO2", "IL-6"] },
-  { id: "immune", filterId: "immune", label: "Immune / blood", plainLabel: "Immune and blood system", x: 45, y: 38, tone: "emerald", description: "Summarises circulating immune activity, cytokine tone and inflammatory state.", molecules: ["IL-6", "TNF-alpha", "CRP"] },
-  { id: "liver", filterId: "endocrine", label: "Liver", plainLabel: "Liver", x: 55, y: 40, tone: "amber", description: "Handles metabolic buffering, detoxification and glucose/lipid regulation.", molecules: ["glucose", "insulin", "AMPK"] },
-  { id: "pancreas", filterId: "endocrine", label: "Pancreas", plainLabel: "Pancreas", x: 51, y: 43, tone: "teal", description: "Represents insulin secretion and glucose sensing in metabolic scenarios.", molecules: ["insulin", "GLP-1", "glucagon"] },
-  { id: "gut", filterId: "digestive", label: "Gut", plainLabel: "Gut", x: 50, y: 51, tone: "lime", description: "Models digestion, microbiome-adjacent signals and inflammatory exchange.", molecules: ["SCFA", "GLP-1", "bile acids"] },
-  { id: "kidney", filterId: "renal", label: "Kidney", plainLabel: "Kidney", x: 58, y: 49, tone: "cyan", description: "Tracks filtration, fluid balance and cardiovascular-metabolic coupling.", molecules: ["renin", "creatinine", "sodium"] },
-  { id: "adipose", filterId: "endocrine", label: "Adipose", plainLabel: "Adipose tissue", x: 50, y: 56, tone: "violet", description: "Represents stored-energy signalling and endocrine metabolic tone.", molecules: ["leptin", "adiponectin", "free fatty acids"] },
-  { id: "muscle", filterId: "musculoskeletal", label: "Skeletal muscle", plainLabel: "Skeletal muscle", x: 36, y: 63, tone: "blue", description: "Shows movement, glucose uptake, mitochondrial reserve and exercise adaptation.", molecules: ["ATP", "GLUT4", "myokines"] }
+  { id: "cns", filterId: "nervous", label: "Brain / CNS", plainLabel: "Brain and central nervous system", x: 50, y: 14, tone: "cyan", description: "Coordinates neural signalling, motor control and sensory integration.", molecules: ["dopamine", "BDNF", "alpha-synuclein"] },
+  { id: "eye", filterId: "ocular", label: "Eye / retina", plainLabel: "Eye and retina", x: 50, y: 12, tone: "violet", description: "Represents photoreceptor stress, retinal support and visual function signals.", molecules: ["RPE65", "rhodopsin", "AAV payload"] },
+  { id: "pns", filterId: "nervous", label: "Peripheral nerves", plainLabel: "Peripheral nervous system", x: 50, y: 31, tone: "blue", description: "Carries body-to-brain and brain-to-body signalling across peripheral circuits.", molecules: ["acetylcholine", "neurofilament", "ion channels"] },
+  { id: "heart", filterId: "cardiovascular", label: "Heart", plainLabel: "Heart", x: 51, y: 34, tone: "rose", description: "Tracks cardiovascular regulation, perfusion and autonomic state in the sandbox.", molecules: ["NO", "angiotensin II", "adrenaline"] },
+  { id: "lungs", filterId: "respiratory", label: "Lungs", plainLabel: "Lungs", x: 50, y: 31, tone: "sky", description: "Represents oxygen exchange, respiratory load and inflammatory signalling.", molecules: ["O2", "CO2", "IL-6"] },
+  { id: "immune", filterId: "immune", label: "Immune / blood", plainLabel: "Immune and blood system", x: 46, y: 43, tone: "emerald", description: "Summarises circulating immune activity, cytokine tone and inflammatory state.", molecules: ["IL-6", "TNF-alpha", "CRP"] },
+  { id: "liver", filterId: "endocrine", label: "Liver", plainLabel: "Liver", x: 56, y: 45, tone: "amber", description: "Handles metabolic buffering, detoxification and glucose/lipid regulation.", molecules: ["glucose", "insulin", "AMPK"] },
+  { id: "pancreas", filterId: "endocrine", label: "Pancreas", plainLabel: "Pancreas", x: 51, y: 49, tone: "teal", description: "Represents insulin secretion and glucose sensing in metabolic scenarios.", molecules: ["insulin", "GLP-1", "glucagon"] },
+  { id: "gut", filterId: "digestive", label: "Gut", plainLabel: "Gut", x: 50, y: 58, tone: "lime", description: "Models digestion, microbiome-adjacent signals and inflammatory exchange.", molecules: ["SCFA", "GLP-1", "bile acids"] },
+  { id: "kidney", filterId: "renal", label: "Kidney", plainLabel: "Kidney", x: 58, y: 55, tone: "cyan", description: "Tracks filtration, fluid balance and cardiovascular-metabolic coupling.", molecules: ["renin", "creatinine", "sodium"] },
+  { id: "adipose", filterId: "endocrine", label: "Adipose", plainLabel: "Adipose tissue", x: 50, y: 63, tone: "violet", description: "Represents stored-energy signalling and endocrine metabolic tone.", molecules: ["leptin", "adiponectin", "free fatty acids"] },
+  { id: "muscle", filterId: "musculoskeletal", label: "Skeletal muscle", plainLabel: "Skeletal muscle", x: 39, y: 68, tone: "blue", description: "Shows movement, glucose uptake, mitochondrial reserve and exercise adaptation.", molecules: ["ATP", "GLUT4", "myokines"] }
 ];
 
 const atlasSystems: SystemOverlay[] = [
@@ -323,6 +323,7 @@ export function WholeBodyVisualization(props: WholeBodyVisualizationProps) {
   const selectedActive = activeSet.size === 0 || activeSet.has(selectedRegion.id) || activeSet.has(selectedRegion.filterId);
   const activeOverlayDetails = atlasSystems.filter((system) => enabledSystems.includes(system.id));
   const atlasTransform = atlasTransformForViewport(atlasViewport);
+  const atlasCssTransform = atlasCssTransformForViewport(atlasViewport);
   const toggleOverlay = (id: AtlasSystemId) => {
     setEnabledSystems((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
   };
@@ -421,6 +422,14 @@ export function WholeBodyVisualization(props: WholeBodyVisualizationProps) {
             <button type="button" className="rounded-full px-2.5 py-1 transition hover:bg-cyan-300/12" onClick={() => updateZoom(atlasViewport.zoom * 0.88)} aria-label="Zoom out">-</button>
             <button type="button" className="rounded-full border border-white/10 px-2.5 py-1 text-slate-300 transition hover:border-cyan-300/35 hover:text-cyan-50" onClick={resetViewport}>Reset</button>
           </div>
+          <div className="absolute inset-0" style={{ transform: atlasCssTransform, transformOrigin: "50% 50%" }}>
+            <img
+              src="/anatomogram-human.svg"
+              alt="Anatomical whole-body reference"
+              className="absolute inset-0 h-full w-full object-contain opacity-90 drop-shadow-[0_0_22px_rgba(103,232,249,0.22)]"
+              draggable={false}
+            />
+          </div>
           <svg
             className={`absolute inset-0 h-full w-full ${dragStart ? "cursor-grabbing" : "cursor-grab"}`}
             viewBox="0 0 100 100"
@@ -457,16 +466,6 @@ export function WholeBodyVisualization(props: WholeBodyVisualizationProps) {
             </defs>
             <rect x="0" y="0" width="100" height="100" fill="url(#bodyAtlasGlow)" />
             <g transform={atlasTransform}>
-              <image
-                href="/anatomogram-human.svg"
-                x="0"
-                y="0"
-                width="100"
-                height="100"
-                opacity="0.9"
-                preserveAspectRatio="xMidYMid meet"
-                filter="url(#bodyAtlasDropGlow)"
-              />
               <SystemOverlayLayer systems={activeOverlayDetails} density={signalDensity} showLabels={false} showMolecules={false} mode={mode} />
               <RegionAnchorLayer
                 activeSet={activeSet}
@@ -476,7 +475,6 @@ export function WholeBodyVisualization(props: WholeBodyVisualizationProps) {
                 scores={scores}
                 selectedRegionId={selectedRegion.id}
                 showLabels={showLabels}
-                showScores={showRawDetails}
                 onSelect={setSelectedRegionId}
               />
             </g>
@@ -792,7 +790,6 @@ function RegionAnchorLayer({
   scores,
   selectedRegionId,
   showLabels,
-  showScores,
   onSelect
 }: {
   activeSet: Set<BodySystemFilterId>;
@@ -802,7 +799,6 @@ function RegionAnchorLayer({
   scores: Record<BodySystemFilterId, number>;
   selectedRegionId: BodySystemFilterId;
   showLabels: boolean;
-  showScores: boolean;
   onSelect: (id: BodySystemFilterId) => void;
 }) {
   return (
@@ -842,11 +838,6 @@ function RegionAnchorLayer({
             ) : null}
             <circle cx={region.x} cy={region.y} r={radius} fill="rgba(2,6,23,0.46)" stroke={isSelected ? "#67e8f9" : color} strokeWidth={isSelected ? 0.22 : 0.2} />
             <circle cx={region.x} cy={region.y} r={Math.max(0.7, radius - 0.9)} fill={color} opacity={isSelected ? 0.62 : 0.42} />
-            {showScores ? (
-              <text x={region.x} y={region.y + 0.55} textAnchor="middle" fill="#f8fafc" fontSize="1.55" fontWeight="800" pointerEvents="none">
-                {Math.round(score)}
-              </text>
-            ) : null}
             {label ? (
               <g pointerEvents="none">
                 <path d={`M ${region.x} ${region.y} L ${region.x + offset.x * 0.72} ${region.y + offset.y * 0.72}`} stroke={color} strokeWidth="0.18" strokeDasharray="0.8 1.2" opacity="0.58" />
@@ -874,6 +865,10 @@ function RegionAnchorLayer({
 
 function atlasTransformForViewport(viewport: { zoom: number; panX: number; panY: number }) {
   return `translate(${viewport.panX} ${viewport.panY}) translate(50 50) scale(${viewport.zoom}) translate(-50 -50)`;
+}
+
+function atlasCssTransformForViewport(viewport: { zoom: number; panX: number; panY: number }) {
+  return `translate(${viewport.panX}%, ${viewport.panY}%) scale(${viewport.zoom})`;
 }
 
 function clamp(value: number, min: number, max: number) {

@@ -80,18 +80,16 @@ export function BodySandboxPage({ initialView = "body" }: { initialView?: Sandbo
       >
         <aside className="min-w-0">
           <div className="sticky top-20 space-y-3">
-            <GlassCard className="p-2">
-              <button
-                type="button"
-                className="flex w-full items-center justify-between rounded-lg border border-cyan-300/20 bg-cyan-300/[0.06] px-3 py-2 text-left text-xs font-semibold uppercase tracking-[0.16em] text-cyan-100 transition hover:border-cyan-200/45"
-                onClick={() => setLeftPanelCollapsed((value) => !value)}
-              >
-                <span>{leftPanelCollapsed ? "Start" : "Biological Starting Point"}</span>
-                {leftPanelCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-              </button>
-            </GlassCard>
             {leftPanelCollapsed ? (
               <GlassCard className="flex min-h-[34rem] flex-col items-center gap-4 p-3 text-center">
+                <button
+                  type="button"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-cyan-300/20 bg-cyan-300/[0.06] text-cyan-100 transition hover:border-cyan-200/45"
+                  onClick={() => setLeftPanelCollapsed(false)}
+                  aria-label="Expand biological starting point panel"
+                >
+                  <PanelLeftOpen className="h-4 w-4" />
+                </button>
                 <ScanHeart className="mt-2 h-5 w-5 text-cyan-200" />
                 <FlaskConical className="h-5 w-5 text-emerald-200" />
                 <Activity className="h-5 w-5 text-violet-200" />
@@ -99,6 +97,14 @@ export function BodySandboxPage({ initialView = "body" }: { initialView?: Sandbo
               </GlassCard>
             ) : (
               <div className="max-h-[calc(100vh-11.5rem)] space-y-3 overflow-y-auto pr-1">
+                <button
+                  type="button"
+                  className="float-right mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-cyan-300/20 bg-slate-950/65 text-cyan-100 transition hover:border-cyan-200/45"
+                  onClick={() => setLeftPanelCollapsed(true)}
+                  aria-label="Collapse biological starting point panel"
+                >
+                  <PanelLeftClose className="h-4 w-4" />
+                </button>
                 <ScenarioBuilderPanel showInterventions={interventionUnlocked} />
                 {!beginner ? <ParameterControlPanel /> : null}
               </div>
@@ -296,53 +302,77 @@ function ActivityView({
 }) {
   const { sandbox } = useSandbox();
   const neural = sandbox.neuralCircuitState;
-  const activityModes = ["Resting", "Sleeping", "Focused", "Active", "Motor Dysfunction", "Hyper-synchronous Activity"];
+  const sourceSignals = [
+    { label: "Neural synchrony", value: sandbox.parameters.neuralSynchrony, tone: "cyan" },
+    { label: "Mitochondrial reserve", value: sandbox.parameters.mitochondrialFunction, tone: "emerald" },
+    { label: "Inflammatory tone", value: sandbox.parameters.inflammation, tone: "violet" },
+    { label: "Oxidative stress", value: sandbox.parameters.oxidativeStress, tone: "rose" }
+  ];
 
   return (
-    <div className="space-y-4">
-      <GlassCard>
-        <p className="text-xs uppercase tracking-[0.18em] text-cyan-200">Activity</p>
-        <h2 className="mt-1 text-xl font-semibold text-white">What is active right now?</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-400">Neural Pulse concepts are now an activity layer over SandboxState, not a separate product.</p>
-      </GlassCard>
-      <div className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
-        <GlassCard>
-          <p className="mb-3 text-sm font-semibold text-white">Activity states</p>
-          <div className="flex flex-wrap gap-2">
-            {activityModes.map((mode) => <span key={mode} className="rounded-full border border-slate-600/40 bg-slate-950/40 px-3 py-1 text-xs text-slate-300">{mode}</span>)}
+    <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <GlassCard className="overflow-hidden p-3">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-cyan-200">Activity Lens</p>
+            <h2 className="text-xl font-semibold text-white">Neural pulse state from sandbox signals</h2>
+            <p className="mt-1 text-sm leading-6 text-slate-400">Circuit activity is a lens on the active biological state, not a separate simulator.</p>
           </div>
-          <div className="mt-5 space-y-2">
+          <button type="button" className="nexus-button" onClick={sendNeuralStateToBodySandbox}>
+            <BrainCircuit className="h-4 w-4" />
+            Send activity to body
+          </button>
+        </div>
+        <NeuralPulseMap />
+        <div className="mt-3 grid gap-3 md:grid-cols-4">
+          <Metric label="Synchrony" value={neural.metrics.synchrony} />
+          <Metric label="Tremor index" value={neural.metrics.tremorIndex} />
+          <Metric label="Overload" value={neural.metrics.overloadRisk} />
+          <Metric label="Suppression" value={neural.metrics.suppressionScore} />
+        </div>
+      </GlassCard>
+      <aside className="space-y-3">
+        <GlassCard>
+          <p className="text-xs uppercase tracking-[0.18em] text-violet-200">Signal source</p>
+          <h3 className="mt-1 text-lg font-semibold text-white">Driven by BioNexus parameters</h3>
+          <div className="mt-4 space-y-3">
+            {sourceSignals.map((signal) => (
+              <div key={signal.label} className="rounded-lg border border-white/10 bg-slate-950/45 p-3">
+                <div className="mb-2 flex items-center justify-between gap-3 text-xs">
+                  <span className="font-semibold text-slate-200">{signal.label}</span>
+                  <span className="font-mono text-cyan-100">{Math.round(signal.value * 100)}%</span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+                  <div className={`h-full rounded-full ${signal.tone === "emerald" ? "bg-emerald-300" : signal.tone === "violet" ? "bg-violet-300" : signal.tone === "rose" ? "bg-rose-300" : "bg-cyan-300"}`} style={{ width: `${Math.round(signal.value * 100)}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+        <GlassCard>
+          <p className="mb-3 text-sm font-semibold text-white">Circuit preset</p>
+          <div className="space-y-2">
             {neuralCircuitPresets.map((preset) => (
               <button key={preset.id} type="button" className={neural.presetId === preset.id ? "nexus-button w-full justify-start" : "nexus-button-secondary w-full justify-start"} onClick={() => applyNeuralCircuitPreset(preset.id)}>
                 {preset.label}
               </button>
             ))}
           </div>
-          <button type="button" className="nexus-button mt-4 w-full" onClick={sendNeuralStateToBodySandbox}>
-            <BrainCircuit className="h-4 w-4" />
-            Sync activity to body
-          </button>
         </GlassCard>
-        <GlassCard className="overflow-hidden">
-          <ActivityMap />
-          <div className="mt-4 grid gap-3 md:grid-cols-4">
-            <Metric label="Synchrony" value={neural.metrics.synchrony} />
-            <Metric label="Tremor index" value={neural.metrics.tremorIndex} />
-            <Metric label="Overload" value={neural.metrics.overloadRisk} />
-            <Metric label="Suppression" value={neural.metrics.suppressionScore} />
-          </div>
-          <div className="mt-4 grid gap-3 md:grid-cols-3">
-            <DBSMetric label="Amplitude" value={`${neural.stimulation.amplitude.toFixed(1)} mA`} />
+        <GlassCard>
+          <p className="text-xs uppercase tracking-[0.18em] text-emerald-200">Modulation field</p>
+          <div className="mt-3 grid gap-3">
+            <DBSMetric label="Amplitude" value={`${neural.stimulation.amplitude.toFixed(1)} a.u.`} />
             <DBSMetric label="Frequency" value={`${Math.round(neural.stimulation.frequency)} Hz`} />
             <DBSMetric label="Pulse width" value={`${Math.round(neural.stimulation.pulseWidth)} us`} />
           </div>
           <label className="mt-4 block text-sm text-slate-300">
-            <span className="mb-2 flex justify-between"><strong className="text-white">Neural synchrony level</strong><span>{Math.round(neural.stimulation.noiseSeverity * 100)}%</span></span>
+            <span className="mb-2 flex justify-between"><strong className="text-white">Circuit synchrony</strong><span>{Math.round(neural.stimulation.noiseSeverity * 100)}%</span></span>
             <input className="w-full accent-violet-300" type="range" min={0.1} max={1} step={0.01} value={neural.stimulation.noiseSeverity} onChange={(event) => updateNeuralStimulation({ noiseSeverity: Number(event.target.value) })} />
           </label>
-          <div className="mt-3 grid gap-3 md:grid-cols-3">
+          <div className="mt-3 grid gap-3">
             <label className="block text-xs text-slate-400">
-              <span className="mb-1 flex justify-between"><strong className="text-slate-200">DBS amplitude</strong><span>{neural.stimulation.amplitude.toFixed(1)}</span></span>
+              <span className="mb-1 flex justify-between"><strong className="text-slate-200">Field strength</strong><span>{neural.stimulation.amplitude.toFixed(1)}</span></span>
               <input className="w-full accent-cyan-300" type="range" min={0} max={5} step={0.1} value={neural.stimulation.amplitude} onChange={(event) => updateNeuralStimulation({ amplitude: Number(event.target.value) })} />
             </label>
             <label className="block text-xs text-slate-400">
@@ -355,7 +385,7 @@ function ActivityView({
             </label>
           </div>
         </GlassCard>
-      </div>
+      </aside>
     </div>
   );
 }
@@ -410,48 +440,59 @@ function PathCard({ title, icon: Icon, items }: { title: string; icon: LucideIco
   );
 }
 
-function ActivityMap() {
+function NeuralPulseMap() {
   const { sandbox } = useSandbox();
   const synchrony = sandbox.neuralCircuitState.metrics.synchrony;
   const overload = sandbox.neuralCircuitState.metrics.overloadRisk;
   const suppression = sandbox.neuralCircuitState.metrics.suppressionScore;
+  const tremor = sandbox.neuralCircuitState.metrics.tremorIndex;
+  const field = sandbox.neuralCircuitState.stimulation.amplitude / 5;
+  const inflammation = sandbox.parameters.inflammation;
+  const mitochondrialReserve = sandbox.parameters.mitochondrialFunction;
 
   return (
-    <div className="relative min-h-[430px] overflow-hidden rounded-lg border border-violet-300/15 bg-[#050917]">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_45%_24%,rgba(34,211,238,0.2),transparent_30%),radial-gradient(circle_at_58%_64%,rgba(168,85,247,0.2),transparent_34%)]" />
+    <div className="relative min-h-[620px] overflow-hidden rounded-xl border border-violet-300/15 bg-[#050917]">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_35%_20%,rgba(34,211,238,0.22),transparent_28%),radial-gradient(circle_at_68%_52%,rgba(168,85,247,0.22),transparent_34%),radial-gradient(circle_at_50%_82%,rgba(52,211,153,0.12),transparent_30%)]" />
       <div className="absolute right-4 top-4 z-10 rounded-full border border-cyan-300/25 bg-slate-950/70 px-3 py-1 text-xs text-cyan-100">
         <Radar className="mr-1 inline h-3.5 w-3.5" />
-        Cortical + DBS sandbox
+        Neural Pulse lens
       </div>
-      <svg viewBox="0 0 760 430" className="relative h-[430px] w-full">
+      <svg viewBox="0 0 980 620" className="relative h-[620px] w-full">
         <defs>
           <filter id="activityGlow"><feGaussianBlur stdDeviation="5" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+          <filter id="strongActivityGlow"><feGaussianBlur stdDeviation="12" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
           <linearGradient id="cortexShell" x1="0" x2="1"><stop offset="0%" stopColor="rgba(15,23,42,0.92)" /><stop offset="100%" stopColor="rgba(30,41,59,0.72)" /></linearGradient>
+          <linearGradient id="pulseLine" x1="0" x2="1"><stop offset="0%" stopColor="#22d3ee" /><stop offset="50%" stopColor="#a78bfa" /><stop offset="100%" stopColor="#34d399" /></linearGradient>
         </defs>
-        <path d="M174 92c85-76 301-76 390 0 72 62 72 196-10 256-92 68-286 66-372 0-82-62-84-194-8-256Z" fill="url(#cortexShell)" stroke="rgba(125,211,252,0.42)" strokeWidth="2" />
-        <path d="M234 96c18 42 24 88 8 132M330 70c-12 54-10 102 8 148M450 72c12 48 4 96-22 142M556 114c-30 34-44 78-40 128" fill="none" stroke="rgba(148,163,184,0.22)" strokeWidth="2" />
-        <path d="M374 138 C344 194 342 253 376 306" fill="none" stroke="rgba(34,211,238,0.34)" strokeWidth="5" strokeLinecap="round" strokeDasharray="8 10" />
-        <path d="M448 142 C484 196 484 252 452 306" fill="none" stroke="rgba(168,85,247,0.34)" strokeWidth="5" strokeLinecap="round" strokeDasharray="8 10" />
+        <path d="M188 112c116-96 390-96 510 0 94 75 98 242-10 318-124 88-386 86-502 0-108-80-106-238 2-318Z" fill="url(#cortexShell)" stroke="rgba(125,211,252,0.42)" strokeWidth="2.5" />
+        <path d="M260 116c26 62 30 132 8 198M388 84c-20 74-16 148 16 222M560 86c20 72 8 142-32 214M700 144c-44 52-62 116-56 190" fill="none" stroke="rgba(148,163,184,0.22)" strokeWidth="2.5" />
+        <path d="M486 126 C464 196 464 276 492 354" fill="none" stroke="rgba(34,211,238,0.42)" strokeWidth="6" strokeLinecap="round" strokeDasharray="9 12" />
+        <path d="M570 128 C620 200 616 282 574 356" fill="none" stroke="rgba(168,85,247,0.38)" strokeWidth="6" strokeLinecap="round" strokeDasharray="9 12" />
+        <path d="M494 354 C456 414 390 464 310 506 M574 356 C626 412 698 456 778 500" fill="none" stroke="url(#pulseLine)" strokeWidth="3" strokeLinecap="round" strokeDasharray="6 10" opacity="0.66" />
         {[
-          [248, 154, "Frontal", synchrony],
-          [365, 122, "Motor cortex", sandbox.neuralCircuitState.metrics.tremorIndex],
-          [496, 160, "Sensory", overload],
-          [344, 280, "Basal ganglia", 1 - suppression],
-          [462, 278, "Thalamic relay", synchrony * 0.8 + overload * 0.2],
-          [592, 234, "Cerebellar loop", overload * 0.45 + synchrony * 0.35]
+          [292, 206, "Frontal regulation", inflammation * 0.4 + synchrony * 0.45],
+          [472, 162, "Motor cortex", tremor],
+          [646, 220, "Sensory integration", overload],
+          [426, 392, "Basal ganglia", 1 - suppression],
+          [588, 388, "Thalamic relay", synchrony * 0.8 + overload * 0.2],
+          [746, 334, "Cerebellar loop", overload * 0.45 + synchrony * 0.35],
+          [306, 506, "Motor output", tremor * 0.55 + (1 - mitochondrialReserve) * 0.2],
+          [778, 500, "Peripheral feedback", synchrony * 0.35 + inflammation * 0.2]
         ].map(([x, y, label, value]) => (
           <g key={label as string}>
-            <circle cx={x as number} cy={y as number} r={34 + (value as number) * 30} fill={(value as number) > 0.65 ? "#fb7185" : "#22d3ee"} opacity={0.12 + (value as number) * 0.28} />
-            <circle cx={x as number} cy={y as number} r={15 + (value as number) * 12} fill={(value as number) > 0.65 ? "#fb7185" : "#67e8f9"} opacity="0.86" filter="url(#activityGlow)" />
-            <text x={x as number} y={(y as number) + 48} textAnchor="middle" fill="#e2e8f0" fontSize="12" fontWeight="700">{label as string}</text>
+            <circle cx={x as number} cy={y as number} r={42 + (value as number) * 42} fill={(value as number) > 0.65 ? "#fb7185" : "#22d3ee"} opacity={0.1 + (value as number) * 0.24} filter="url(#strongActivityGlow)" />
+            <circle cx={x as number} cy={y as number} r={14 + (value as number) * 16} fill={(value as number) > 0.65 ? "#fb7185" : "#67e8f9"} opacity="0.88" filter="url(#activityGlow)" />
+            <circle cx={x as number} cy={y as number} r={26 + (value as number) * 18} fill="none" stroke={(value as number) > 0.65 ? "#fda4af" : "#67e8f9"} strokeWidth="1.2" opacity="0.45" strokeDasharray="4 7" />
+            <text x={x as number} y={(y as number) + 58} textAnchor="middle" fill="#e2e8f0" fontSize="13" fontWeight="700">{label as string}</text>
           </g>
         ))}
         <g>
-          <line x1="380" y1="66" x2="346" y2="278" stroke="rgba(52,211,153,0.72)" strokeWidth="3" />
-          <line x1="448" y1="66" x2="462" y2="278" stroke="rgba(52,211,153,0.72)" strokeWidth="3" />
-          <circle cx="380" cy="66" r="8" fill="#34d399" filter="url(#activityGlow)" />
-          <circle cx="448" cy="66" r="8" fill="#34d399" filter="url(#activityGlow)" />
-          <text x="414" y="48" textAnchor="middle" fill="#a7f3d0" fontSize="12" fontWeight="700">DBS leads</text>
+          <line x1="480" y1="70" x2="426" y2="392" stroke="rgba(52,211,153,0.72)" strokeWidth={2 + field * 4} />
+          <line x1="572" y1="70" x2="588" y2="388" stroke="rgba(52,211,153,0.72)" strokeWidth={2 + field * 4} />
+          <circle cx="480" cy="70" r={9 + field * 7} fill="#34d399" opacity="0.9" filter="url(#activityGlow)" />
+          <circle cx="572" cy="70" r={9 + field * 7} fill="#34d399" opacity="0.9" filter="url(#activityGlow)" />
+          <circle cx="506" cy="390" r={42 + field * 42} fill="none" stroke="#34d399" strokeWidth="2" opacity="0.35" />
+          <text x="526" y="48" textAnchor="middle" fill="#a7f3d0" fontSize="13" fontWeight="800">Stimulation field</text>
         </g>
       </svg>
     </div>

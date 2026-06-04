@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, GitBranch, Search, SlidersHorizontal, Sparkles } from "lucide-react";
+import { ArrowDown, ArrowUp, GitBranch, Search, SlidersHorizontal } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ComplexitySelector } from "@/components/ui/ComplexitySelector";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -7,7 +7,7 @@ import { useSandbox } from "@/lib/sandbox/sandboxState";
 import { defaultParameters, parameterControls } from "@/lib/sandbox/simulation";
 
 type StartingPointLayer = BiologicalLayer | "scenario" | "molecule";
-type TraceDirection = "forward" | "backward";
+type TraceDirection = "both" | "forward" | "backward";
 
 const dataLayerOptions: Array<{ id: StartingPointLayer; label: string; example: string }> = [
   { id: "scenario", label: "Scenario", example: "metabolic dysfunction, retinal degeneration, inflammatory activation" },
@@ -21,96 +21,14 @@ const dataLayerOptions: Array<{ id: StartingPointLayer; label: string; example: 
   { id: "interventions", label: "Intervention", example: "DBS, exercise, sleep disruption, gene delivery" }
 ];
 
-const evidencePatterns: Array<{
-  id: string;
-  label: string;
-  description: string;
-  patch: Partial<Record<ParameterControlId, number>>;
-  pathwayBias: number;
-}> = [
-  {
-    id: "neural-motor",
-    label: "Motor / neural instability",
-    description: "Raises neural synchrony and oxidative load to explore motor-circuit or tremor examples.",
-    patch: { neuralSynchrony: 0.78, oxidativeStress: 0.52, mitochondrialFunction: 0.58 },
-    pathwayBias: 0.26
-  },
-  {
-    id: "metabolic-load",
-    label: "Metabolic regulation stress",
-    description: "Fits insulin/glucose examples by lowering signal integrity and increasing metabolic load.",
-    patch: { insulinSensitivity: 0.26, metabolicLoad: 0.82, inflammation: 0.48, oxidativeStress: 0.46 },
-    pathwayBias: 0.22
-  },
-  {
-    id: "immune-inflammatory",
-    label: "Inflammatory activation",
-    description: "Fits cytokine or immune-activation examples by raising immune and tissue inflammation tone.",
-    patch: { immuneActivation: 0.84, inflammation: 0.76, oxidativeStress: 0.5 },
-    pathwayBias: 0.24
-  },
-  {
-    id: "ocular-retinal",
-    label: "Retinal / sensory stress",
-    description: "Fits ocular degeneration or gene-therapy mechanism examples by increasing retinal stress.",
-    patch: { retinalStress: 0.84, oxidativeStress: 0.48, inflammation: 0.38 },
-    pathwayBias: 0.2
-  },
-  {
-    id: "rescue-modulation",
-    label: "Rescue / modulation",
-    description: "Explores a stabilising intervention by reducing inflammation, synchrony and oxidative stress load.",
-    patch: { inflammation: 0.22, neuralSynchrony: 0.32, oxidativeStress: 0.28, immuneActivation: 0.28, mitochondrialFunction: 0.78 },
-    pathwayBias: -0.22
-  }
-];
-
-const healthyPatterns: typeof evidencePatterns = [
-  {
-    id: "baseline-neural",
-    label: "Neural activity",
-    description: "Adjusts reference neural signalling without selecting a disease or disruption.",
-    patch: { neuralSynchrony: 0.34, mitochondrialFunction: 0.72, oxidativeStress: 0.2 },
-    pathwayBias: 0.04
-  },
-  {
-    id: "baseline-metabolic",
-    label: "Metabolic load",
-    description: "Explores normal-range changes in glucose, liver and muscle energy balance.",
-    patch: { insulinSensitivity: 0.7, metabolicLoad: 0.3, mitochondrialFunction: 0.7 },
-    pathwayBias: 0.04
-  },
-  {
-    id: "baseline-inflammatory",
-    label: "Inflammatory tone",
-    description: "Adjusts immune activity within a low-disruption reference state.",
-    patch: { immuneActivation: 0.28, inflammation: 0.24, oxidativeStress: 0.22 },
-    pathwayBias: 0.03
-  },
-  {
-    id: "baseline-retinal",
-    label: "Visual/retinal stress",
-    description: "Explores mild visual-system load without implying retinal degeneration.",
-    patch: { retinalStress: 0.3, oxidativeStress: 0.2, inflammation: 0.18 },
-    pathwayBias: 0.02
-  },
-  {
-    id: "baseline-support",
-    label: "Recovery/support state",
-    description: "Raises supportive physiology such as mitochondrial reserve and lower inflammatory tone.",
-    patch: { inflammation: 0.16, immuneActivation: 0.2, oxidativeStress: 0.18, mitochondrialFunction: 0.82 },
-    pathwayBias: -0.08
-  }
-];
-
 export function ScenarioBuilderPanel({ showInterventions = false }: { showInterventions?: boolean }) {
-  const { sandbox, activePreset, selectPreset, togglePredisposition, togglePerturbation, toggleIntervention, setPathwayTuning, applySandboxTuning } = useSandbox();
+  const { sandbox, activePreset, selectPreset, togglePredisposition, togglePerturbation, toggleIntervention, setPathwayTuning } = useSandbox();
   const activePredispositions = new Set(sandbox.scenario.predispositions.map((item) => item.id));
   const activePerturbations = new Set(sandbox.scenario.perturbations.map((item) => item.id));
   const activeInterventions = new Set(sandbox.scenario.interventions.map((item) => item.id));
   const [knownLayer, setKnownLayer] = useState<StartingPointLayer>("phenotypes");
   const [exampleText, setExampleText] = useState("Observed tremor + motor slowing after neural-circuit perturbation");
-  const [traceDirection, setTraceDirection] = useState<TraceDirection>("backward");
+  const [traceDirection, setTraceDirection] = useState<TraceDirection>("both");
   const isHealthyBaseline = sandbox.activeScenarioId === "healthy-baseline";
   const readerMode = getReaderMode();
   const showMechanisticTrace = readerMode === "researcher" || readerMode === "expert";
@@ -119,25 +37,13 @@ export function ScenarioBuilderPanel({ showInterventions = false }: { showInterv
   const topPhenotypes = sandbox.simulationResult.phenotypeEffects.slice(0, 3);
   const selectedLayer = dataLayerOptions.find((item) => item.id === knownLayer) ?? dataLayerOptions[0];
   const extrapolation = useMemo(() => buildExtrapolationCopy(knownLayer), [knownLayer]);
-  const patterns = isHealthyBaseline ? healthyPatterns : evidencePatterns;
-  const activeTrace = traceDirection === "backward"
-    ? buildBackwardTrace(topBacktrace, activePreset, exampleText)
-    : buildForwardTrace(topPhenotypes, activePreset, knownLayer, exampleText);
+  const backwardTrace = buildBackwardTrace(topBacktrace, activePreset, exampleText);
+  const forwardTrace = buildForwardTrace(topPhenotypes, activePreset, knownLayer, exampleText);
   const changedParameters = parameterControls
     .map((control) => ({ control, value: sandbox.parameters[control.id], baseline: defaultParameters[control.id] }))
     .filter(({ value, baseline }) => Math.abs(value - baseline) >= 0.04)
     .slice(0, 5);
   const changedPathways = Object.entries(sandbox.pathwayTuning).filter(([, value]) => Math.abs(value) >= 0.05).slice(0, 4);
-
-  const applyPattern = (pattern: (typeof evidencePatterns)[number]) => {
-    applySandboxTuning({
-      parameters: pattern.patch,
-      pathwayTuning: Object.fromEntries(activePreset.keyPathways.map((pathway) => {
-        const current = sandbox.pathwayTuning[pathway] ?? 0;
-        return [pathway, Math.max(-1, Math.min(1, current + pattern.pathwayBias))];
-      }))
-    });
-  };
 
   return (
     <GlassCard className="h-full">
@@ -177,7 +83,20 @@ export function ScenarioBuilderPanel({ showInterventions = false }: { showInterv
             <GitBranch className="h-4 w-4 text-violet-100" />
             <p className="text-xs uppercase tracking-[0.18em] text-violet-100">Reasoning direction</p>
           </div>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            <button
+              type="button"
+              className={`rounded-md border p-3 text-left transition ${
+                traceDirection === "both" ? "border-violet-300/50 bg-violet-300/10 text-violet-50" : "border-white/10 bg-slate-950/35 text-slate-300 hover:border-violet-300/35"
+              }`}
+              onClick={() => setTraceDirection("both")}
+            >
+              <span className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-violet-100">
+                <GitBranch className="h-3.5 w-3.5" />
+                Both
+              </span>
+              <span className="block text-sm font-semibold text-white">Cause and effect</span>
+            </button>
             <button
               type="button"
               className={`rounded-md border p-3 text-left transition ${
@@ -207,38 +126,14 @@ export function ScenarioBuilderPanel({ showInterventions = false }: { showInterv
           </div>
           <div className="mt-3 rounded-md border border-white/10 bg-slate-950/35 p-3">
             <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Knowledge path</p>
-            <div className="mt-3 space-y-2">
-              {isHealthyBaseline && !showMechanisticTrace && traceDirection === "backward" ? (
-                <p className="text-sm text-slate-300">No dominant disruption selected.</p>
-              ) : activeTrace.map((step, index) => (
-                <div key={`${step}-${index}`} className="flex items-center gap-2 text-sm text-slate-300">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-cyan-300/25 bg-cyan-300/10 text-[10px] text-cyan-100">{index + 1}</span>
-                  <span>{step}</span>
-                </div>
-              ))}
-            </div>
+            {traceDirection === "backward" || traceDirection === "both" ? (
+              <TraceSteps title="Trace backward" tone="cyan" empty={isHealthyBaseline && !showMechanisticTrace} items={backwardTrace} />
+            ) : null}
+            {traceDirection === "forward" || traceDirection === "both" ? (
+              <TraceSteps title="Trace forward" tone="emerald" items={forwardTrace} />
+            ) : null}
           </div>
           <p className="mt-3 text-xs leading-5 text-slate-500">{extrapolation}</p>
-        </div>
-
-        <div>
-          <p className="mb-2 text-xs uppercase tracking-[0.18em] text-slate-500">Reasoning templates</p>
-          <div className="grid gap-2">
-            {patterns.map((pattern) => (
-              <button
-                key={pattern.id}
-                type="button"
-                className="rounded-md border border-slate-700/50 bg-slate-950/35 p-3 text-left transition hover:border-cyan-300/45 hover:bg-cyan-300/[0.06]"
-                onClick={() => applyPattern(pattern)}
-              >
-                <span className="flex items-center gap-2 text-sm font-semibold text-white">
-                  <Sparkles className="h-3.5 w-3.5 text-violet-200" />
-                  {pattern.label}
-                </span>
-                <span className="mt-1 block text-xs leading-5 text-slate-400">{pattern.description}</span>
-              </button>
-            ))}
-          </div>
         </div>
 
         <label className="block text-sm text-slate-300">
@@ -289,8 +184,8 @@ export function ScenarioBuilderPanel({ showInterventions = false }: { showInterv
           <p className="mb-2 text-xs uppercase tracking-[0.18em] text-slate-500">Complexity level</p>
           <ComplexitySelector />
         </div>
-        <ToggleList title="Predispositions" items={activePreset.predispositions} active={activePredispositions} onToggle={togglePredisposition} />
-        <ToggleList title="Perturbations" items={activePreset.perturbations} active={activePerturbations} onToggle={togglePerturbation} />
+        {activePreset.predispositions.length ? <ToggleList title="Predispositions" items={activePreset.predispositions} active={activePredispositions} onToggle={togglePredisposition} /> : null}
+        {activePreset.perturbations.length ? <ToggleList title="Perturbations" items={activePreset.perturbations} active={activePerturbations} onToggle={togglePerturbation} /> : null}
         {showInterventions ? (
           <ToggleList title="Interventions" items={activePreset.interventions} active={activeInterventions} onToggle={toggleIntervention} />
         ) : null}
@@ -327,6 +222,25 @@ function buildExtrapolationCopy(layer: StartingPointLayer) {
   if (layer === "tissues") return "Starting from tissue or organ state: the sandbox suggests genes and pathways that could plausibly relate to the selected body-region signal.";
   if (layer === "phenotypes") return "Starting from phenotype: BioNexus walks backward toward candidate genes/pathways and forward toward scenario-level effects.";
   return "Starting from intervention or exposure: the sandbox treats it as a perturbation and shows possible pathway, organ and phenotype effects.";
+}
+
+function TraceSteps({ title, tone, items, empty = false }: { title: string; tone: "cyan" | "emerald"; items: string[]; empty?: boolean }) {
+  const colorClass = tone === "cyan" ? "border-cyan-300/25 bg-cyan-300/10 text-cyan-100" : "border-emerald-300/25 bg-emerald-300/10 text-emerald-100";
+  return (
+    <div className="mt-3">
+      <p className={`text-xs font-semibold uppercase tracking-[0.14em] ${tone === "cyan" ? "text-cyan-100" : "text-emerald-100"}`}>{title}</p>
+      <div className="mt-2 space-y-2">
+        {empty ? (
+          <p className="text-sm text-slate-300">No dominant disruption selected.</p>
+        ) : items.map((step, index) => (
+          <div key={`${title}-${step}-${index}`} className="flex items-center gap-2 text-sm text-slate-300">
+            <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] ${colorClass}`}>{index + 1}</span>
+            <span>{step}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function buildBackwardTrace(topBacktrace: ReturnType<typeof useSandbox>["sandbox"]["simulationResult"]["backtraceCandidates"], activePreset: ReturnType<typeof useSandbox>["activePreset"], exampleText: string) {
